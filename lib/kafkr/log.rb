@@ -104,7 +104,7 @@ module Kafkr
     end
   
     def persist_received_message(message_content)
-      File.open(@received_file, 'a') do |file|
+      File.open("./.kafkr/acknowledged_message_ids.txt", 'a') do |file|
         file.puts(message_content)
       end
     end
