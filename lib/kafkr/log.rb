@@ -112,8 +112,3 @@ module Kafkr
     end
   end
 end
-
-# Example usage
-log_server = Kafkr::Log.new(4000)
-puts "Log server started!"
-log_server.start
