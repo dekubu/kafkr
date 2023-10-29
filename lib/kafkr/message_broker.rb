@@ -1,6 +1,6 @@
 module Kafkr
 class MessageBroker
-    attr_accessor :last_sent
+    attr_accessor :last_sent,:subscribers
 
     def initialize
       @subscribers = []
