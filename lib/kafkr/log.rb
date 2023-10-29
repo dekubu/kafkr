@@ -24,7 +24,6 @@ module Kafkr
       loop do
         client = @server.accept
         client_ip = client.peeraddr[3]
-
         unless whitelisted?(client_ip)
           puts "Connection from non-whitelisted IP: #{client_ip}. Ignored."
           client.close
@@ -32,7 +31,30 @@ module Kafkr
         end
 
         @broker.add_subscriber(client)
-        # Your thread handling code here
+        Thread.new do
+          loop do
+            message = client.gets
+            if message.nil?
+              # Client connection has been closed
+              @broker.last_sent.delete(client)
+              client.close
+              @broker.subscribers.delete(client)
+              puts "Client connection closed. Removed from subscribers list."
+              break
+            else
+              message = message.chomp
+              uuid, message_content = extract_uuid(message)
+              if uuid && message_content
+                acknowledge_message(uuid, client)  # Acknowledge the message
+                persist_received_message(message_content)  # Persist received messages to disk
+                @broker.broadcast(message_content)
+              else
+                # Handle invalid message format
+                puts "Received invalid message format: #{message}"
+              end
+            end
+          end
+        end
       end
     end
 
@@ -49,6 +71,18 @@ module Kafkr
 
     def whitelisted?(ip)
       @whitelist.include?(ip.gsub("::ffff:", ""))
+    end
+  
+  
+  private 
+    def extract_uuid(message)
+      match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
+      if match_data
+        uuid = match_data[1]
+        message_content = match_data[2]
+        return uuid, message_content
+      end
+      return nil, nil
     end
   end
 end

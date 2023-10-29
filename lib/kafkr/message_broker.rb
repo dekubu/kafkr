@@ -13,6 +13,7 @@ class MessageBroker
     end
 
     def broadcast(message)
+      log message
       @subscribers.each do |subscriber|
         begin
           if !subscriber.closed?
