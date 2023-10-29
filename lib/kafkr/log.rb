@@ -5,13 +5,14 @@ module Kafkr
   class Log
     def initialize(port)
       @server = TCPServer.new(port)
+      @received_file = "./.kafkr/log.txt"
       @broker = MessageBroker.new
       @whitelist = load_whitelist
       @acknowledged_message_ids = load_acknowledged_message_ids
     end
 
     def load_acknowledged_message_ids
-      unless File.exist? "./.kafkr/acknowledged_message_ids.txt"
+      unless File.exist?("./.kafkr/acknowledged_message_ids.txt")
         `mkdir -p ./.kafkr`
         `touch ./.kafkr/acknowledged_message_ids.txt`
       end
@@ -29,6 +30,7 @@ module Kafkr
       loop do
         client = @server.accept
         client_ip = client.peeraddr[3]
+        
         unless whitelisted?(client_ip)
           puts "Connection from non-whitelisted IP: #{client_ip}. Ignored."
           client.close
@@ -36,25 +38,29 @@ module Kafkr
         end
 
         @broker.add_subscriber(client)
+        
         Thread.new do
           loop do
             message = client.gets
             if message.nil?
-              # Client connection has been closed
               @broker.last_sent.delete(client)
               client.close
-              @broker.subscribers.delete(client) if @broker
+              @broker.subscribers.delete(client)
               puts "Client connection closed. Removed from subscribers list."
               break
             else
               message = message.chomp
               uuid, message_content = extract_uuid(message)
               if uuid && message_content
-                acknowledge_message(uuid, client)  # Acknowledge the message
-                persist_received_message(uuid)  # Persist received messages to disk
-                @broker.broadcast(message_content)
+                if @acknowledged_message_ids.include?(uuid)
+                  acknowledge_existing_message(uuid, client)
+                else
+                  acknowledge_message(uuid, client)
+                  persist_received_message(uuid)
+                  @acknowledged_message_ids << uuid
+                  @broker.broadcast(message_content)
+                end
               else
-                # Handle invalid message format
                 puts "Received invalid message format: #{message}"
               end
             end
@@ -62,7 +68,7 @@ module Kafkr
         end
       end
     end
-
+    
     def load_whitelist
       whitelist = ["localhost", "::1"]
       if File.exist?("whitelist.txt")
@@ -77,42 +83,37 @@ module Kafkr
     def whitelisted?(ip)
       @whitelist.include?(ip.gsub("::ffff:", ""))
     end
-  
-  
-  private 
+
+    private
+    
     def extract_uuid(message)
       match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
-      if match_data
-        uuid = match_data[1]
-        message_content = match_data[2]
-        return uuid, message_content
-      end
-      return nil, nil
+      return match_data ? [match_data[1], match_data[2]] : [nil, nil]
+    end
+    
+    def acknowledge_message(uuid, client)
+      puts "Received message with UUID #{uuid}. Acknowledged."
+      acknowledgment_message = "ACK: #{uuid}"
+      client.puts(acknowledgment_message)
+      puts "Acknowledgment sent to producer: #{acknowledgment_message}"
+    end
+    
+    def acknowledge_existing_message(uuid, client)
+      puts "Received duplicate message with UUID #{uuid}. Already Acknowledged."
+      acknowledgment_message = "ACK-DUPLICATE: #{uuid}"
+      client.puts(acknowledgment_message)
+      puts "Duplicate acknowledgment sent to producer: #{acknowledgment_message}"
     end
 
-    def acknowledge_message(uuid, client)
-      begin
-        # Implement acknowledgment logic here if needed
-        puts "Received message with UUID #{uuid}. Acknowledged."
-  
-        # Send acknowledgment back to the producer
-        acknowledgment_message = "ACK: #{uuid}"
-        client.puts(acknowledgment_message)
-        puts "Acknowledgment sent to producer: #{acknowledgment_message}"
-      rescue Errno::EPIPE
-        # Producer's socket connection has been closed, remove the subscriber
-        @broker.last_sent.delete(client)
-        client.close
-        @broker.subscribers.delete(client)
-        puts "Producer's socket connection closed. Removed from subscribers list."
-      end
-    end
-  
-    def persist_received_message(message_content)
+    def persist_received_message(uuid)
       File.open("./.kafkr/acknowledged_message_ids.txt", 'a') do |file|
-        file.puts(message_content)
+        file.puts(uuid)
       end
     end
   end
 end
 
+# Example usage
+log_server = Kafkr::Log.new(4000)
+puts "Log server started!"
+log_server.start
