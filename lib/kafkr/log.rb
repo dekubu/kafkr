@@ -43,7 +43,7 @@ module Kafkr
               # Client connection has been closed
               @broker.last_sent.delete(client)
               client.close
-              @broker.subscribers.delete(client)
+              @broker.subscribers.delete(client) if broker
               puts "Client connection closed. Removed from subscribers list."
               break
             else
