@@ -3,37 +3,48 @@
 require 'logger'
 require 'securerandom'
 require 'ostruct'
-require_relative "kafkr/version"
 
 module Kafkr
   class << self
     attr_accessor :current_environment
 
-    # Logger methods
     def logger
       @logger ||= configure_logger
     end
 
     def configure_logger(output = default_output)
-      @logger = ::Logger.new(output)
+      begin
+        @logger = ::Logger.new(output)
+      rescue Errno::EACCES, Errno::ENOENT => e
+        @logger = ::Logger.new(STDOUT)
+        @logger.error("Could not open log file: #{e.message}")
+      end
       set_logger_level
       @logger
     end
 
-    def set_logger_level
-      levels = {
-        'development' => ::Logger::DEBUG,
-        'staging'     => ::Logger::INFO,
-        'production'  => ::Logger::WARN
-      }
-      @logger.level = levels[current_environment] || ::Logger::DEBUG
-    end
-
     def default_output
-      current_environment == 'production' ? '/var/log/kafkr.log' : STDOUT
+      case current_environment
+      when 'production'
+        '/var/log/kafkr.log'
+      else
+        STDOUT
+      end
     end
 
-    # Environment methods
+    def set_logger_level
+      @logger.level = case current_environment
+                      when 'development'
+                        ::Logger::DEBUG
+                      when 'staging'
+                        ::Logger::INFO
+                      when 'production'
+                        ::Logger::WARN
+                      else
+                        ::Logger::DEBUG
+                      end
+    end
+
     def current_environment
       @current_environment ||= ENV['KAFKR_ENV'] || 'development'
     end
@@ -54,11 +65,21 @@ module Kafkr
       current_environment == 'production'
     end
 
-    # Writing logs
-    def write(message, unique_id = SecureRandom.uuid)
+    def write(message, unique_id = nil)
+      begin
+        unique_id ||= SecureRandom.uuid
+      rescue StandardError => e
+        unique_id = 'unknown'
+        @logger.error("Failed to generate UUID: #{e.message}")
+      end
       formatted_message = "[#{unique_id}] #{message}"
-      puts formatted_message if development?
-      logger.info(formatted_message)
+      
+      begin
+        puts formatted_message if development?
+        logger.info(formatted_message)
+      rescue IOError => e
+        @logger.error("Failed to write log: #{e.message}")
+      end
     end
 
     alias :log :write
@@ -75,6 +96,10 @@ module Kafkr
   end
 
   def self.configure
-    yield(configuration)
+    begin
+      yield(configuration)
+    rescue StandardError => e
+      logger.error("Configuration error: #{e.message}")
+    end
   end
 end
