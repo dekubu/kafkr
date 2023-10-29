@@ -4,6 +4,8 @@ require 'logger'
 require 'securerandom'
 require 'ostruct'
 
+require_relative 'kafkr/log'
+
 module Kafkr
   class << self
     attr_accessor :current_environment

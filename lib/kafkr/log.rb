@@ -1,6 +1,5 @@
 require "rubygems"
 require "socket"
-require 'file'
 module Kafkr
   class MessageBroker
     attr_accessor :last_sent
