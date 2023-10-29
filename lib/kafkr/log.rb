@@ -84,6 +84,30 @@ module Kafkr
       end
       return nil, nil
     end
+
+    def acknowledge_message(uuid, client)
+      begin
+        # Implement acknowledgment logic here if needed
+        puts "Received message with UUID #{uuid}. Acknowledged."
+  
+        # Send acknowledgment back to the producer
+        acknowledgment_message = "ACK: #{uuid}"
+        client.puts(acknowledgment_message)
+        puts "Acknowledgment sent to producer: #{acknowledgment_message}"
+      rescue Errno::EPIPE
+        # Producer's socket connection has been closed, remove the subscriber
+        @broker.last_sent.delete(client)
+        client.close
+        @broker.subscribers.delete(client)
+        puts "Producer's socket connection closed. Removed from subscribers list."
+      end
+    end
+  
+    def persist_received_message(message_content)
+      File.open(@received_file, 'a') do |file|
+        file.puts(message_content)
+      end
+    end
   end
 end
 
