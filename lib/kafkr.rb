@@ -9,32 +9,31 @@ module Kafkr
   class << self
     attr_accessor :current_environment
 
+    # Logger methods
     def logger
       @logger ||= configure_logger
     end
 
-    def configure_logger(output = nil)
-      output ||= case current_environment
-                 when 'production'
-                   '/var/log/kafkr.log'
-                 else
-                   STDOUT
-                 end
+    def configure_logger(output = default_output)
       @logger = ::Logger.new(output)
-      @logger.level = case current_environment
-                      when 'development'
-                        ::Logger::DEBUG
-                      when 'staging'
-                        ::Logger::INFO
-                      when 'production'
-                        ::Logger::WARN
-                      else
-                        ::Logger::DEBUG
-                      end
+      set_logger_level
       @logger
     end
-    
-    
+
+    def set_logger_level
+      levels = {
+        'development' => ::Logger::DEBUG,
+        'staging'     => ::Logger::INFO,
+        'production'  => ::Logger::WARN
+      }
+      @logger.level = levels[current_environment] || ::Logger::DEBUG
+    end
+
+    def default_output
+      current_environment == 'production' ? '/var/log/kafkr.log' : STDOUT
+    end
+
+    # Environment methods
     def current_environment
       @current_environment ||= ENV['KAFKR_ENV'] || 'development'
     end
@@ -55,10 +54,9 @@ module Kafkr
       current_environment == 'production'
     end
 
-    def write(message, unique_id = nil)
-      unique_id ||= SecureRandom.uuid
+    # Writing logs
+    def write(message, unique_id = SecureRandom.uuid)
       formatted_message = "[#{unique_id}] #{message}"
-
       puts formatted_message if development?
       logger.info(formatted_message)
     end
@@ -79,6 +77,4 @@ module Kafkr
   def self.configure
     yield(configuration)
   end
-
-  # Your code goes here...
 end
