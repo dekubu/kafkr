@@ -58,12 +58,14 @@ RSpec.describe Kafkr do
   describe '#production?' do
     it 'configures logger for production environment' do
       mock_logger = double("Logger")
+      allow(mock_logger).to receive(:level=)  # Add this line
       allow(mock_logger).to receive(:level).and_return(Logger::WARN)
       allow(Kafkr).to receive(:current_environment).and_return('production')
       allow(Logger).to receive(:new).and_return(mock_logger)
       Kafkr.configure_logger
       expect(Kafkr.logger.level).to eq(Logger::WARN)
     end
+    
   end
   
 end
