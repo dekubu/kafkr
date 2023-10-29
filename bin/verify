@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Run all specs except exe_spec.rb
+for file in $(find ./spec -name '*_spec.rb' ! -name 'exe_spec.rb');
+do
+  rspec $file
+done
+
+# Run exe_spec.rb last
+rspec ./spec/exe_spec.rb
