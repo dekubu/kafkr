@@ -51,7 +51,7 @@ module Kafkr
               uuid, message_content = extract_uuid(message)
               if uuid && message_content
                 acknowledge_message(uuid, client)  # Acknowledge the message
-                persist_received_message(message_content)  # Persist received messages to disk
+                persist_received_message(uuid)  # Persist received messages to disk
                 @broker.broadcast(message_content)
               else
                 # Handle invalid message format

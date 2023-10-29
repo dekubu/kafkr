@@ -25,7 +25,9 @@ jdkdjd
 kdjdjdldkdk
 dkdkddk]a
 dsaasda
-tes
+test
+test
+clear
 test
 est
 test
@@ -37,4 +39,5 @@ jdkdjd
 kdjdjdldkdk
 dkdkddk]a
 dsaasda
+test
 test
