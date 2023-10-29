@@ -11,6 +11,7 @@ module Kafkr
     end
 
     def load_acknowledged_message_ids
+      `mkdir ./.kafkr && touch ./kafkr/acknowledged_message_ids.txt`
       config_path = File.expand_path('./.kafkr/acknowledged_message_ids.txt')
       return [] unless File.exist?(config_path)
 
