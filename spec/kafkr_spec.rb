@@ -4,7 +4,9 @@ require_relative 'spec_helper'  # Adjust the path to your kafkr.rb file
 
 RSpec.describe Kafkr do
   before(:each) do
+    allow(::Logger).to receive(:new).and_return(Logger.new(StringIO.new))
     Kafkr.configure_logger(StringIO.new)
+    
   end
   
   describe '#configure_logger' do
