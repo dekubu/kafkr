@@ -4,7 +4,9 @@ require 'logger'
 require 'securerandom'
 require 'ostruct'
 
+require_relative 'kafkr/message_broker.rb'
 require_relative 'kafkr/log'
+
 
 module Kafkr
   class << self
