@@ -5,7 +5,6 @@ module Kafkr
   class Log
     def initialize(port)
       @server = TCPServer.new(port)
-      @received_file = "./.kafkr/log.txt"
       @broker = MessageBroker.new
       @whitelist = load_whitelist
       @acknowledged_message_ids = load_acknowledged_message_ids
@@ -22,7 +21,19 @@ module Kafkr
     end
 
     def start
-      # Your existing 'start' method
+      loop do
+        client = @server.accept
+        client_ip = client.peeraddr[3]
+
+        unless whitelisted?(client_ip)
+          puts "Connection from non-whitelisted IP: #{client_ip}. Ignored."
+          client.close
+          next
+        end
+
+        @broker.add_subscriber(client)
+        # Your thread handling code here
+      end
     end
 
     def load_whitelist
@@ -41,3 +52,4 @@ module Kafkr
     end
   end
 end
+
