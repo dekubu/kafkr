@@ -6,6 +6,6 @@
 /pkg/
 /spec/reports/
 /tmp/
-
+./.kafkr/
 # rspec failure tracking
 .rspec_status
