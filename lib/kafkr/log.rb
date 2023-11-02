@@ -3,7 +3,7 @@ require "rubygems"
 
 module Kafkr
   class Log
-    @@decryptor = Encryptor.new
+    @@decryptor = Kafkr::Encryptor.new
     
     def initialize(port)
       @server = TCPServer.new(port)
