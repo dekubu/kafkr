@@ -2,8 +2,8 @@ module Kafkr
     class Encryptor
       ALGORITHM = 'AES-256-CBC'
   
-      def initialize(key)
-        @key = key
+      def initializ
+        @key = ENV['KAFKR_KEY']
         @cipher = OpenSSL::Cipher.new(ALGORITHM)
       end
   
