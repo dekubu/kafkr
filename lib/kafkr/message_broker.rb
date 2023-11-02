@@ -1,6 +1,6 @@
 module Kafkr
-class MessageBroker
-    attr_accessor :last_sent,:subscribers
+  class MessageBroker
+    attr_accessor :last_sent, :subscribers
 
     def initialize
       @subscribers = []
@@ -15,19 +15,16 @@ class MessageBroker
     def broadcast(message)
       Kafkr.log message
       @subscribers.each do |subscriber|
-        begin
-          if !subscriber.closed?
-            begin
-              subscriber.puts(message)
-              @last_sent[subscriber] = message
-            rescue Errno::EPIPE
-              
-            end
+        if !subscriber.closed?
+          begin
+            subscriber.puts(message)
+            @last_sent[subscriber] = message
+          rescue Errno::EPIPE
           end
-        rescue IOError
-          @subscribers.delete(subscriber)
-          @last_sent.delete(subscriber)
         end
+      rescue IOError
+        @subscribers.delete(subscriber)
+        @last_sent.delete(subscriber)
       end
     end
   end

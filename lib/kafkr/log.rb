@@ -17,7 +17,7 @@ module Kafkr
         `touch ./.kafkr/acknowledged_message_ids.txt`
       end
 
-      config_path = File.expand_path('./.kafkr/acknowledged_message_ids.txt')
+      config_path = File.expand_path("./.kafkr/acknowledged_message_ids.txt")
       return [] unless File.exist?(config_path)
 
       File.readlines(config_path).map(&:strip)
@@ -30,7 +30,7 @@ module Kafkr
       loop do
         client = @server.accept
         client_ip = client.peeraddr[3]
-        
+
         unless whitelisted?(client_ip)
           puts "Connection from non-whitelisted IP: #{client_ip}. Ignored."
           client.close
@@ -38,7 +38,7 @@ module Kafkr
         end
 
         @broker.add_subscriber(client)
-        
+
         Thread.new do
           loop do
             message = client.gets
@@ -64,11 +64,12 @@ module Kafkr
                 puts "Received invalid message format: #{message}"
               end
             end
+          rescue Errno::ECONNRESET
           end
         end
       end
     end
-    
+
     def load_whitelist
       whitelist = ["localhost", "::1"]
       if File.exist?("whitelist.txt")
@@ -85,19 +86,19 @@ module Kafkr
     end
 
     private
-    
+
     def extract_uuid(message)
       match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
-      return match_data ? [match_data[1], match_data[2]] : [nil, nil]
+      match_data ? [match_data[1], match_data[2]] : [nil, nil]
     end
-    
+
     def acknowledge_message(uuid, client)
       puts "Received message with UUID #{uuid}. Acknowledged."
       acknowledgment_message = "ACK: #{uuid}"
       client.puts(acknowledgment_message)
       puts "Acknowledgment sent to producer: #{acknowledgment_message}"
     end
-    
+
     def acknowledge_existing_message(uuid, client)
       puts "Received duplicate message with UUID #{uuid}. Already Acknowledged."
       acknowledgment_message = "ACK-DUPLICATE: #{uuid}"
@@ -106,7 +107,7 @@ module Kafkr
     end
 
     def persist_received_message(uuid)
-      File.open("./.kafkr/acknowledged_message_ids.txt", 'a') do |file|
+      File.open("./.kafkr/acknowledged_message_ids.txt", "a") do |file|
         file.puts(uuid)
       end
     end

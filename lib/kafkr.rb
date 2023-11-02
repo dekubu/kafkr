@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-require 'logger'
-require 'securerandom'
-require 'ostruct'
+require "logger"
+require "securerandom"
+require "ostruct"
 
-require_relative 'kafkr/message_broker.rb'
-require_relative 'kafkr/log'
-
+require_relative "kafkr/message_broker"
+require_relative "kafkr/log"
 
 module Kafkr
   class << self
@@ -29,8 +28,8 @@ module Kafkr
 
     def default_output
       case current_environment
-      when 'production'
-        '/var/log/kafkr.log'
+      when "production"
+        "/var/log/kafkr.log"
       else
         STDOUT
       end
@@ -38,46 +37,46 @@ module Kafkr
 
     def set_logger_level
       @logger.level = case current_environment
-                      when 'development'
-                        ::Logger::DEBUG
-                      when 'staging'
-                        ::Logger::INFO
-                      when 'production'
-                        ::Logger::WARN
-                      else
-                        ::Logger::DEBUG
-                      end
+      when "development"
+        ::Logger::DEBUG
+      when "staging"
+        ::Logger::INFO
+      when "production"
+        ::Logger::WARN
+      else
+        ::Logger::DEBUG
+      end
     end
 
     def current_environment
-      @current_environment ||= ENV['KAFKR_ENV'] || 'development'
+      @current_environment ||= ENV["KAFKR_ENV"] || "development"
     end
 
     def development?
-      current_environment == 'development'
+      current_environment == "development"
     end
 
     def test?
-      current_environment == 'test'
+      current_environment == "test"
     end
 
     def staging?
-      current_environment == 'staging'
+      current_environment == "staging"
     end
 
     def production?
-      current_environment == 'production'
+      current_environment == "production"
     end
 
     def write(message, unique_id = nil)
       begin
         unique_id ||= SecureRandom.uuid
-      rescue StandardError => e
-        unique_id = 'unknown'
+      rescue => e
+        unique_id = "unknown"
         @logger.error("Failed to generate UUID: #{e.message}")
       end
       formatted_message = "[#{unique_id}] #{message}"
-      
+
       begin
         puts formatted_message if development?
         logger.info(formatted_message)
@@ -86,11 +85,11 @@ module Kafkr
       end
     end
 
-    alias :log :write
-    alias :output :write
-    alias :info :write
-    alias :record :write
-    alias :trace :write
+    alias_method :log, :write
+    alias_method :output, :write
+    alias_method :info, :write
+    alias_method :record, :write
+    alias_method :trace, :write
   end
 
   class Error < StandardError; end
@@ -100,10 +99,8 @@ module Kafkr
   end
 
   def self.configure
-    begin
-      yield(configuration)
-    rescue StandardError => e
-      logger.error("Configuration error: #{e.message}")
-    end
+    yield(configuration)
+  rescue => e
+    logger.error("Configuration error: #{e.message}")
   end
 end

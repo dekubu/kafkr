@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-PORT = ENV['KAFKR_PORT'] || 4000
+PORT = ENV["KAFKR_PORT"] || 4000
 
 begin
   require "kafkr"
@@ -12,7 +12,7 @@ begin
   server = Kafkr::Log.new(PORT.to_i)
   puts "Log started on port #{PORT}!"
   server.start
-rescue StandardError => e
+rescue => e
   puts "An error occurred: #{e.message}"
   exit(1)
 rescue Interrupt
