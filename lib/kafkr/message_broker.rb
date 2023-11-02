@@ -17,8 +17,12 @@ class MessageBroker
       @subscribers.each do |subscriber|
         begin
           if !subscriber.closed?
-            subscriber.puts(message)
-            @last_sent[subscriber] = message
+            begin
+              subscriber.puts(message)
+              @last_sent[subscriber] = message
+            rescue Errno::EPIPE
+              
+            end
           end
         rescue IOError
           @subscribers.delete(subscriber)
