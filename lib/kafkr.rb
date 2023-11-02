@@ -3,7 +3,7 @@
 require "logger"
 require "securerandom"
 require "ostruct"
-require ''
+
 
 require_relative "kafkr/message_broker"
 require_relative "kafkr/log"
@@ -29,7 +29,7 @@ module Kafkr
     end
 
     def decrypt(encrypted_data)
-      iv, encrypted_message = encrypted_data.split('--').map(&:unpack1, 'm')
+      iv, encrypted_message = encrypted_data.split('--').map { |part| part.unpack1('m') }
       @cipher.decrypt
       @cipher.key = @key
       @cipher.iv = iv
