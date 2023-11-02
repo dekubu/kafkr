@@ -3,7 +3,7 @@ require "rubygems"
 
 module Kafkr
   class Log
-    @@decryptor = Kafkr::Encryptor.new
+    
     
     def initialize(port)
       @server = TCPServer.new(port)
@@ -51,7 +51,8 @@ module Kafkr
               puts "Client connection closed. Removed from subscribers list."
               break
             else
-              message = @@decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
+              decryptor = Kafkr::Encryptor.new
+              message = decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
               uuid, message_content = extract_uuid(message)
               if uuid && message_content
                 if @acknowledged_message_ids.include?(uuid)

@@ -1,42 +1,18 @@
 # frozen_string_literal: true
 
 require "logger"
+require "openssl"
 require "securerandom"
 require "ostruct"
 
 
+require_relative "kafkr/encryptor.rb"
 require_relative "kafkr/message_broker"
 require_relative "kafkr/log"
 require_relative "kafkr/consumer.rb"
 require_relative "kafkr/producer.rb"
 
 module Kafkr
-  class Encryptor
-    ALGORITHM = 'AES-256-CBC'
-
-    def initialize(key)
-      @key = key
-      @cipher = OpenSSL::Cipher.new(ALGORITHM)
-    end
-
-    def encrypt(data)
-      @cipher.encrypt
-      @cipher.key = @key
-      iv = @cipher.random_iv
-
-      encrypted_data = @cipher.update(data) + @cipher.final
-      "#{iv.unpack1('m')}--#{encrypted_data.unpack1('m')}"
-    end
-
-    def decrypt(encrypted_data)
-      iv, encrypted_message = encrypted_data.split('--').map { |part| part.unpack1('m') }
-      @cipher.decrypt
-      @cipher.key = @key
-      @cipher.iv = iv
-      @cipher.update(encrypted_message) + @cipher.final
-    end
-  end
-
   class << self
     attr_accessor :current_environment
     def logger
