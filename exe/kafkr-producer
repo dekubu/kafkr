@@ -23,7 +23,6 @@ rescue => e
   puts "An error occurred: #{e.message}"
   exit(1)
 rescue Interrupt
-  puts "\nLog server shutting down gracefully..."
-  server.stop if server.respond_to?(:stop)
+  puts "\nProducer server shutting down gracefully..."
   exit(0)
 end
