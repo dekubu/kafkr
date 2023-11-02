@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+PORT = ENV["KAFKR_PORT"] || 4000
+
+begin
+  require "kafkr"
+rescue LoadError => e
+  puts "Failed to load Kafkr: #{e.message}"
+  exit(1)
+end
+
+begin
+  Kafkr::Consumer
+  puts "Consumer started on port #{PORT}!"
+  Kafkr::Consumer.configure do |config|
+    config.port = PORT
+  end
+
+  # Example usage
+  Kafkr::Consumer.new.listen do |message|
+    puts message
+  end
+rescue => e
+  puts "An error occurred: #{e.message}"
+  exit(1)
+rescue Interrupt
+  puts "\nConsumer shutting down gracefully..."
+  server.stop if server.respond_to?(:stop)
+  exit(0)
+end
