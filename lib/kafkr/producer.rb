@@ -126,14 +126,3 @@ module Kafkr
     end
   end
 end
-
-Kafkr::Producer.configure do |config|
-  config.host = "localhost"
-end
-
-# while line = Readline.readline("> ", true)
-#   break if line == "exit"
-#   Kafkr::Producer.send_message(line)
-# end
-
-Kafkr::Producer.send_message("poop")
