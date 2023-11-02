@@ -3,6 +3,8 @@ require "rubygems"
 
 module Kafkr
   class Log
+    @@decryptor = Encryptor.new
+    
     def initialize(port)
       @server = TCPServer.new(port)
       @received_file = "./.kafkr/log.txt"
@@ -30,26 +32,26 @@ module Kafkr
       loop do
         client = @server.accept
         client_ip = client.peeraddr[3]
-
+    
         unless whitelisted?(client_ip)
           puts "Connection from non-whitelisted IP: #{client_ip}. Ignored."
           client.close
           next
         end
-
+    
         @broker.add_subscriber(client)
-
+    
         Thread.new do
           loop do
-            message = client.gets
-            if message.nil?
+            encrypted_message = client.gets
+            if encrypted_message.nil?
               @broker.last_sent.delete(client)
               client.close
               @broker.subscribers.delete(client)
               puts "Client connection closed. Removed from subscribers list."
               break
             else
-              message = message.chomp
+              message = @@decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
               uuid, message_content = extract_uuid(message)
               if uuid && message_content
                 if @acknowledged_message_ids.include?(uuid)
@@ -65,11 +67,13 @@ module Kafkr
               end
             end
           rescue Errno::ECONNRESET
+            puts "Connection reset by client. Closing connection..."
+            client.close
           end
         end
       end
     end
-
+    
     def load_whitelist
       whitelist = ["localhost", "::1"]
       if File.exist?("whitelist.txt")

@@ -31,8 +31,12 @@ module Kafkr
     end
 
     def self.send_message(message)
+      
       uuid = SecureRandom.uuid
-      message_with_uuid = "#{uuid}: #{message}"
+      encryptor = Encryptor.new
+      encrypted_message = encryptor.encrypt(message)
+      message_with_uuid = "#{uuid}: #{encrypted_message}"
+
       begin
         if !@configuration.acknowledged_messages.include?(uuid)
           socket = TCPSocket.new(@configuration.host, @configuration.port)

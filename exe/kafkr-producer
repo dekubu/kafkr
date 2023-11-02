@@ -9,9 +9,16 @@ rescue LoadError => e
 end
 
 begin
-  server = Kafkr::Log.new(PORT.to_i)
-  puts "Log started on port #{PORT}!"
-  server.start
+  
+  Kafkr::Producer.configure do |config|
+    config.host = "localhost"
+  end
+  
+  while line = Readline.readline("> ", true)
+    break if line == "exit"
+     Kafkr::Producer.send_message(line)
+  end
+  
 rescue => e
   puts "An error occurred: #{e.message}"
   exit(1)
