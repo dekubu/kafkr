@@ -33,8 +33,7 @@ module Kafkr
     def self.send_message(message)
       
       uuid = SecureRandom.uuid
-      encryptor = Encryptor.new
-      encrypted_message = encryptor.encrypt(message)
+      encrypted_message = Encryptor.new.encrypt(message)
       message_with_uuid = "#{uuid}: #{encrypted_message}"
 
       begin
