@@ -60,7 +60,7 @@ module Kafkr
             if message.nil?
               raise LostConnection
             else
-              message = decryptor.decrypt(message.chomp) # Decrypt the message here
+              message =  Kafkr::Encryptor.new.decrypt(message.chomp) # Decrypt the message here
               puts message.chomp
             end
           end
