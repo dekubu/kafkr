@@ -16,16 +16,10 @@ module Kafkr
       iv = cipher.random_iv
       encrypted_data = cipher.update(data) + cipher.final
       encrypted_data = Base64.strict_encode64(iv + encrypted_data)
-      puts encrypted_data
-      encrypted_data
     end
 
     def decrypt(encrypted_data)
-      
       puts "Encrypted data before decoding: #{encrypted_data.inspect}"
-
-      puts encrypted_data
-
       decipher = OpenSSL::Cipher.new(ALGORITHM)
       decipher.decrypt
       decipher.key = @key
