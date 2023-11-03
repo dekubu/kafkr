@@ -6,7 +6,7 @@ module Kafkr
     ALGORITHM = 'AES-256-CBC'
   
     def initialize
-      @key = ENV['KAFKR_KEY'] || 'default_key'
+      @key = ENV.fetch('KAFKR_KEY')
       @cipher = OpenSSL::Cipher.new(ALGORITHM)
     end
   
