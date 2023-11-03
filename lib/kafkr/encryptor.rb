@@ -6,7 +6,7 @@ module Kafkr
     ALGORITHM = 'AES-256-CBC'
   
     def initialize
-      @key = "2wZ85yxQe0lmiQ5nsqdmPWoGB0W6HZW8S/UXVTLQ6WY="
+      @key = Base64.decode64("2wZ85yxQe0lmiQ5nsqdmPWoGB0W6HZW8S/UXVTLQ6WY=") 
       @cipher = OpenSSL::Cipher.new(ALGORITHM)
     end
   
