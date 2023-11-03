@@ -31,7 +31,7 @@ module Kafkr
       logger.error("Configuration error: #{e.message}")
     end
 
-    def structured_data_to_hash(input)
+    def self.structured_data_to_hash(input)
       # Check the overall structure with regex and make quotes optional
       unless input.match(/\A\w+\s*=>\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
         return input
