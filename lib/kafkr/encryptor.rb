@@ -21,23 +21,28 @@ module Kafkr
     end
 
     def decrypt(encrypted_data)
-      cipher = OpenSSL::Cipher.new(ALGORITHM)
-      cipher.decrypt
-      cipher.key = @key
-
       decoded_data = Base64.decode64(encrypted_data)
-
-      # The IV is exactly the first 16 bytes of the decoded data
+    
+      # Verify the IV length is correct
+      unless decoded_data.length >= cipher.iv_len
+        puts "Invalid data: IV length is too short"
+        return nil
+      end
+    
       cipher.iv = decoded_data[0, cipher.iv_len]
-
-      # The encrypted message is everything after the IV
       encrypted_message = decoded_data[cipher.iv_len..]
-
-      # Decrypt and return the plaintext message
+    
+      # Verify the encrypted message isn't empty
+      if encrypted_message.nil? || encrypted_message.empty?
+        puts "Invalid data: Encrypted message is missing"
+        return nil
+      end
+    
       cipher.update(encrypted_message) + cipher.final
     rescue OpenSSL::Cipher::CipherError => e
       puts "Decryption failed: #{e.message}"
       nil
     end
+    
   end
 end
