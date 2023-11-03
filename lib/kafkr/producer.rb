@@ -32,7 +32,7 @@ module Kafkr
 
     def self.send_message(message)
       uuid = SecureRandom.uuid
-      message_with_uuid = "#{uuid}: #{encrypted_message}"
+      message_with_uuid = "#{uuid}: #{message}"
 
       begin
         if !@configuration.acknowledged_messages.include?(uuid)
