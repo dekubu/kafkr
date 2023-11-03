@@ -34,7 +34,7 @@ module Kafkr
     def self.send_message(message)
       uuid = SecureRandom.uuid
 
-      if message.is_a String
+      if message.is_a? String
         message_with_uuid = "#{uuid}: #{message}"
       end
 
