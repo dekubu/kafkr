@@ -4,6 +4,7 @@ require "logger"
 require "openssl"
 require "securerandom"
 require "ostruct"
+require "gibberish"
 
 require_relative "kafkr/encryptor"
 require_relative "kafkr/message_broker"
