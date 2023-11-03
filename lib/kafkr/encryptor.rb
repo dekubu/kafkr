@@ -3,6 +3,9 @@ require "base64"
 
 module Kafkr
   class Encryptor
+    
+    attr_reader :key, :cipher
+
     ALGORITHM = 'AES-256-CBC'
   
     def initialize
