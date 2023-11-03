@@ -61,7 +61,11 @@ module Kafkr
               raise LostConnection
             else
               message =  Kafkr::Encryptor.new.decrypt(message.chomp) # Decrypt the message here
-              puts message.chomp
+              if valid_json?(message.chomp)
+                p JSON.parse(message.chomp) 
+              else
+                puts message.chomp
+              end
             end
           end
         rescue LostConnection
@@ -75,6 +79,13 @@ module Kafkr
           exit(0)
         end
       end
+    end
+
+    def valid_json?(json)
+      JSON.parse(json)
+      true
+    rescue JSON::ParserError
+      false
     end
 
     alias_method :consume, :listen

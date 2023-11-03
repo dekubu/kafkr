@@ -3,6 +3,7 @@ require "socket"
 require "fileutils"
 require "securerandom"
 require "ostruct"
+require 'json'
 
 module Kafkr
   module Producer
@@ -32,7 +33,14 @@ module Kafkr
 
     def self.send_message(message)
       uuid = SecureRandom.uuid
-      message_with_uuid = "#{uuid}: #{message}"
+
+      if message.is_a String
+        message_with_uuid = "#{uuid}: #{message}"
+      end
+
+      if message.is_a?(Hash)
+        message_with_uuid = "#{uuid}: #{JSON.generate(message)}"
+      end
     
       # Encrypt the message here
       encrypted_message_with_uuid = Kafkr::Encryptor.new.encrypt(message_with_uuid)
