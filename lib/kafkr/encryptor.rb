@@ -9,11 +9,11 @@ module Kafkr
     end
 
     def encrypt(data)
-      cipher.encrypt(data)
+      Base64.encode(cipher.encrypt(data))
     end
 
     def decrypt(data)
-      cipher.decrypt(data)
+      cipher.decrypt(Base64.decode64(cipher.encrypt(data)))
     rescue OpenSSL::Cipher::CipherError => e
       puts "Decryption failed: #{e.message}"
       nil
