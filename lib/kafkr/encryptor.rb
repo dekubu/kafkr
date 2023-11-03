@@ -15,10 +15,15 @@ module Kafkr
       cipher.key = @key
       iv = cipher.random_iv
       encrypted_data = cipher.update(data) + cipher.final
-      Base64.strict_encode64(iv + encrypted_data)
+      encrypted_data = Base64.strict_encode64(iv + encrypted_data)
+      puts encrypted_data
+      encrypted_data
     end
 
     def decrypt(encrypted_data)
+      
+      puts encrypted_data
+
       decipher = OpenSSL::Cipher.new(ALGORITHM)
       decipher.decrypt
       decipher.key = @key
