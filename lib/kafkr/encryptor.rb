@@ -1,5 +1,6 @@
 require "openssl"
 require "base64"
+require "gibberish"
 
 module Kafkr
   class Encryptor
@@ -13,10 +14,11 @@ module Kafkr
     end
 
     def decrypt(data)
-      cipher.decrypt(Base64.decode64(cipher.encrypt(data)))
+      cipher.decrypt(Base64.decode64(data))
     rescue OpenSSL::Cipher::CipherError => e
       puts "Decryption failed: #{e.message}"
       nil
     end
+    
   end
 end
