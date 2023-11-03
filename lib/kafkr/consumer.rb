@@ -28,11 +28,22 @@ module Kafkr
       def register_handler(handler)
         @handlers << handler
       end
+
+      # Dynamically load handlers from a given directory
+      def load_handlers(directory = "./handlers")
+        Dir.glob("#{directory}/**/*.rb").each { |file| require file }
+      end
     end
 
     class Handler
       def handle(message)
         raise NotImplementedError, 'You must implement the handle method'
+      end
+
+      def send_message(message)
+        producer = Producer.new
+        producer.send_message(message)
+        puts "Handler sending message: #{message.inspect}"
       end
 
       def self.inherited(subclass)
@@ -43,7 +54,7 @@ module Kafkr
     # Default handler that just inspects the message
     class DefaultHandler < Handler
       def handle(message)
-        puts "#{message.inspect}"
+        puts "DefaultHandler received message: #{message.inspect}"
       end
     end
 
@@ -67,7 +78,7 @@ module Kafkr
           socket = TCPSocket.new(@host, @port)
           puts "Connected to server." if attempt == 0
           attempt = 0
-          
+
           loop do
             message = socket.gets
             raise LostConnection if message.nil?
@@ -118,4 +129,7 @@ module Kafkr
       self.class.handlers.each { |handler| handler.handle(message_hash) }
     end
   end
+
+  # Assuming the handlers directory is the default location
+  Consumer.load_handlers
 end
