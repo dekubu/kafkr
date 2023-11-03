@@ -52,7 +52,7 @@ module Kafkr
               decryptor = Kafkr::Encryptor.new
               message = decryptor.decrypt(encrypted_message) # Decrypt the message here
               uuid, message_content = extract_uuid(message)
-              if uuid && messa  ge_content
+              if uuid && message_content
                 if @acknowledged_message_ids.include?(uuid)
                   acknowledge_existing_message(uuid, client)
                 else
