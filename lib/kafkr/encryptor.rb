@@ -13,15 +13,18 @@ module Kafkr
       cipher = OpenSSL::Cipher.new(ALGORITHM)
       cipher.encrypt
       cipher.key = @key
+      iv = cipher.random_iv
       encrypted_data = cipher.update(data) + cipher.final
-      Base64.encode64(encrypted_data).gsub("\n", '')
+      Base64.strict_encode64(iv + encrypted_data)
     end
 
     def decrypt(encrypted_data)
       decipher = OpenSSL::Cipher.new(ALGORITHM)
       decipher.decrypt
       decipher.key = @key
-      decrypted_data = decipher.update(Base64.decode64(encrypted_data)) + decipher.final
+      raw_data = Base64.strict_decode64(encrypted_data)
+      decipher.iv = raw_data[0, decipher.iv_len]
+      decrypted_data = decipher.update(raw_data[decipher.iv_len..-1]) + decipher.final
       decrypted_data
     rescue OpenSSL::Cipher::CipherError => e
       puts "Decryption failed: #{e.message}"
