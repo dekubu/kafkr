@@ -2,13 +2,13 @@ module Kafkr
     class Encryptor
       ALGORITHM = 'AES-256-CBC'
   
-      def initializ
+      def initialize
         @key = ENV['KAFKR_KEY']
         @cipher = OpenSSL::Cipher.new(ALGORITHM)
       end
   
       def encrypt(data)
-        @cipher.encrypt
+        @cipher.encrypt data
         @cipher.key = @key
         iv = @cipher.random_iv
   
