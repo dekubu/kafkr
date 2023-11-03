@@ -32,9 +32,6 @@ module Kafkr
 
     def self.send_message(message)
       uuid = SecureRandom.uuid
-
-      encrypted_message = Kafkr::Encryptor.new.encrypt(message)
-
       message_with_uuid = "#{uuid}: #{encrypted_message}"
 
       begin
@@ -42,7 +39,7 @@ module Kafkr
           socket = TCPSocket.new(@configuration.host, @configuration.port)
           listen_for_acknowledgments(socket)
           send_queued_messages(socket)
-          socket.puts(message_with_uuid)
+          socket.puts(Kafkr::Encryptor.new.encrypt(message_with_uuid))
         else
           puts "Message with UUID #{uuid} has already been acknowledged. Skipping."
         end
