@@ -31,26 +31,30 @@ module Kafkr
       logger.error("Configuration error: #{e.message}")
     end
 
-    def self.structured_data_to_hash(input)
-      # Check the overall structure with regex
-      return input unless input.match(/\A\w+\s*=>\s*(\w+:\s*"[^"]*",\s*)*(\w+:\s*"[^"]*")\s*\z/)
+    def structured_data_to_hash(input)
+      # Check the overall structure with regex and make quotes optional
+      unless input.match(/\A\w+\s*=>\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
+        return input
+      end
     
       # Extract the type and key-value pairs
       type, key_values_str = input.split('=>').map(&:strip)
-      key_values = key_values_str.scan(/(\w+):\s*"([^"]*)"/)
+      key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
     
-      # Convert the array of pairs into a hash
+      # Convert the array of pairs into a hash, stripping quotes if they exist
       hash_body = key_values.to_h do |key, value|
-        [key.to_sym, value]
+        [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
       end
     
       # Return the final hash with the type as the key
       { type.to_sym => hash_body }
     end
+  
 
     def self.send_message(message)
       uuid = SecureRandom.uuid
-      message = structured_data_to_hash(message)
+
+      message =  structured_data_to_hash(message)
 
       if message.is_a? String
         message_with_uuid = "#{uuid}: #{message}"
