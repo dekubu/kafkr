@@ -22,6 +22,8 @@ module Kafkr
 
     def decrypt(encrypted_data)
       
+      puts "Encrypted data before decoding: #{encrypted_data.inspect}"
+
       puts encrypted_data
 
       decipher = OpenSSL::Cipher.new(ALGORITHM)
