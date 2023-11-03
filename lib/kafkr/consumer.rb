@@ -86,9 +86,13 @@ module Kafkr
             # Assuming Kafkr::Encryptor is defined elsewhere
             message = Kafkr::Encryptor.new.decrypt(message.chomp) 
             if valid_json?(message)
-              dispatch_to_handlers(JSON.parse(message)) 
+               dispatch_to_handlers(JSON.parse(message)) do |message|
+                 yield message if block_given?
+               end
             else
-              dispatch_to_handlers(message)
+              dispatch_to_handlers(message) do |message|
+                yield message if block_given?
+              end
             end
           end
         rescue LostConnection
@@ -127,6 +131,7 @@ module Kafkr
     def dispatch_to_handlers(message)
       message_hash = message.is_a?(String) ? { message: { body: message } } : message
       self.class.handlers.each { |handler| handler.handle(message_hash) }
+      yield message_hash if block_given?
     end
   end
 
