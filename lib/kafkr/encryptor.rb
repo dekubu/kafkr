@@ -3,13 +3,11 @@ require "base64"
 
 module Kafkr
   class Encryptor
-    ALGORITHM = "AES-256-CBC"
-
-    attr_reader :key, :cipher
+    ALGORITHM = 'AES-256-CBC'
 
     def initialize
+      # Decoding the key from Base64 and ensuring it's the correct length for the algorithm
       @key = Base64.decode64("2wZ85yxQe0lmiQ5nsqdmPWoGB0W6HZW8S/UXVTLQ6WY=")
-      @cipher = OpenSSL::Cipher.new(ALGORITHM)
     end
 
     def encrypt(data)
@@ -17,9 +15,13 @@ module Kafkr
       cipher.encrypt
       cipher.key = @key
       iv = cipher.random_iv
+      cipher.iv = iv
 
+      # Encrypt the data
       encrypted_data = cipher.update(data) + cipher.final
-      Base64.encode64(iv + encrypted_data) # Prepend the IV to the encrypted data
+
+      # Prepend the IV for use in decryption, then encode the result with Base64
+      Base64.encode64(iv + encrypted_data)
     end
 
     def decrypt(encrypted_data)
@@ -27,16 +29,15 @@ module Kafkr
       cipher.decrypt
       cipher.key = @key
 
+      # Decode the data from Base64
       decoded_data = Base64.decode64(encrypted_data)
 
-      # Extract the IV from the beginning of the decoded data
-      iv = decoded_data[0, cipher.iv_len]
+      # Extract the IV and encrypted message
+      iv = decoded_data[0...cipher.iv_len]
+      encrypted_message = decoded_data[cipher.iv_len..-1]
       cipher.iv = iv
 
-      # Extract the encrypted message, which is everything after the IV
-      encrypted_message = decoded_data[cipher.iv_len..-1]
-
-      # Decrypt and return the plaintext message
+      # Decrypt the data
       cipher.update(encrypted_message) + cipher.final
     rescue OpenSSL::Cipher::CipherError => e
       puts "Decryption failed: #{e.message}"
