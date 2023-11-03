@@ -5,12 +5,11 @@ require "openssl"
 require "securerandom"
 require "ostruct"
 
-
-require_relative "kafkr/encryptor.rb"
+require_relative "kafkr/encryptor"
 require_relative "kafkr/message_broker"
 require_relative "kafkr/log"
-require_relative "kafkr/consumer.rb"
-require_relative "kafkr/producer.rb"
+require_relative "kafkr/consumer"
+require_relative "kafkr/producer"
 
 module Kafkr
   class << self

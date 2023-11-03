@@ -3,8 +3,6 @@ require "rubygems"
 
 module Kafkr
   class Log
-    
-    
     def initialize(port)
       @server = TCPServer.new(port)
       @received_file = "./.kafkr/log.txt"
@@ -32,15 +30,15 @@ module Kafkr
       loop do
         client = @server.accept
         client_ip = client.peeraddr[3]
-    
+
         unless whitelisted?(client_ip)
           puts "Connection from non-whitelisted IP: #{client_ip}. Ignored."
           client.close
           next
         end
-    
+
         @broker.add_subscriber(client)
-    
+
         Thread.new do
           loop do
             encrypted_message = client.gets
@@ -74,7 +72,7 @@ module Kafkr
         end
       end
     end
-    
+
     def load_whitelist
       whitelist = ["localhost", "::1"]
       if File.exist?("whitelist.txt")

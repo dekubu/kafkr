@@ -9,7 +9,6 @@ rescue LoadError => e
 end
 
 begin
-  Kafkr::Consumer
   puts "Consumer started on port #{PORT}!"
   Kafkr::Consumer.configure do |config|
     config.port = PORT
