@@ -33,26 +33,31 @@ module Kafkr
     def self.send_message(message)
       uuid = SecureRandom.uuid
       message_with_uuid = "#{uuid}: #{message}"
-
+    
+      # Encrypt the message here
+      encrypted_message_with_uuid = Kafkr::Encryptor.new.encrypt(message_with_uuid)
+    
       begin
         if !@configuration.acknowledged_messages.include?(uuid)
           socket = TCPSocket.new(@configuration.host, @configuration.port)
           listen_for_acknowledgments(socket)
           send_queued_messages(socket)
-          socket.puts(Kafkr::Encryptor.new.encrypt(message_with_uuid))
+          # Send the encrypted message instead of the plain one
+          socket.puts(encrypted_message_with_uuid)
         else
           puts "Message with UUID #{uuid} has already been acknowledged. Skipping."
         end
       rescue Errno::ECONNREFUSED
-        puts "Connection refused. Queuing message: #{message_with_uuid}"
-        @configuration.message_queue.push(message_with_uuid)
+        puts "Connection refused. Queuing message: #{encrypted_message_with_uuid}"
+        # Queue the encrypted message
+        @configuration.message_queue.push(encrypted_message_with_uuid)
         save_queue_to_file
       rescue Errno::EPIPE
         puts "Broken pipe error. Retrying connection..."
-        retry_connection(message_with_uuid)
+        retry_connection(encrypted_message_with_uuid)
       end
     end
-
+    
     private
 
     def self.listen_for_acknowledgments(socket)
