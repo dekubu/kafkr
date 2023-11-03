@@ -9,7 +9,7 @@ module Kafkr
     end
 
     def encrypt(data)
-      Base64.encode(cipher.encrypt(data))
+      Base64.encode64(cipher.encrypt(data))
     end
 
     def decrypt(data)
