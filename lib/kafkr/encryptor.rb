@@ -19,7 +19,7 @@ module Kafkr
     end
 
     def decrypt(encrypted_data)
-      puts "Encrypted data before decoding: #{encrypted_data.inspect}"
+      #puts "Encrypted data before decoding: #{encrypted_data.inspect}"
       decipher = OpenSSL::Cipher.new(ALGORITHM)
       decipher.decrypt
       decipher.key = @key
