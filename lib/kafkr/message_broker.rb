@@ -14,11 +14,14 @@ module Kafkr
 
     def broadcast(message)
       Kafkr.log message
+
+      encrypted_message = Kafkr::Encryptor.new.encrypt(message)
+
       @subscribers.each do |subscriber|
         if !subscriber.closed?
           begin
-            subscriber.puts(message)
-            @last_sent[subscriber] = message
+            subscriber.puts(encrypted_message)
+            @last_sent[subscriber] = encrypted_message
           rescue Errno::EPIPE
           end
         end
