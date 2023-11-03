@@ -11,24 +11,26 @@ module Kafkr
     end
   
     def encrypt(data)
-      @cipher.encrypt
-      @cipher.key = @key
-      iv = @cipher.random_iv
-
-      encrypted_data = @cipher.update(data) + @cipher.final
+      cipher = OpenSSL::Cipher.new(ALGORITHM)
+      cipher.encrypt
+      cipher.key = @key
+      iv = cipher.random_iv
+    
+      encrypted_data = cipher.update(data) + cipher.final
       Base64.encode64(iv + encrypted_data)
     end
-  
+    
     def decrypt(encrypted_data)
+      cipher = OpenSSL::Cipher.new(ALGORITHM)
+      cipher.decrypt
+      cipher.key = @key
+      
       decoded_data = Base64.decode64(encrypted_data)
-      iv = decoded_data[0..15]
+      cipher.iv = decoded_data[0..15] # Exact IV that was used for encryption
+      
       encrypted_message = decoded_data[16..-1]
-
-      @cipher.decrypt
-      @cipher.key = @key
-      @cipher.iv = iv
-
-      @cipher.update(encrypted_message) + @cipher.final
+      
+      cipher.update(encrypted_message) + cipher.final
     end
   end
 end
