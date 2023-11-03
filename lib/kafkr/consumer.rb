@@ -2,25 +2,51 @@ require "socket"
 require "timeout"
 require "ostruct"
 require "fileutils"
+require "json"
 
 module Kafkr
   class LostConnection < StandardError; end
 
   class Consumer
-    # Configuration setup
-    def self.configuration
-      FileUtils.mkdir_p "./.kafkr"
-      @configuration ||= OpenStruct.new
-      @configuration.host = ENV.fetch("KAFKR_HOST", "localhost")
-      @configuration.port = ENV.fetch("KAFKR_PORT", "4000").to_i
-      @configuration
+    @handlers = []
+
+    class << self
+      attr_reader :handlers
+
+      def configuration
+        FileUtils.mkdir_p "./.kafkr"
+        @configuration ||= OpenStruct.new
+        @configuration.host = ENV.fetch("KAFKR_HOST", "localhost")
+        @configuration.port = ENV.fetch("KAFKR_PORT", "4000").to_i
+        @configuration
+      end
+
+      def configure
+        yield(configuration) if block_given?
+      end
+
+      def register_handler(handler)
+        @handlers << handler
+      end
     end
 
-    def self.configure
-      yield(configuration) if block_given?
+    class Handler
+      def handle(message)
+        raise NotImplementedError, 'You must implement the handle method'
+      end
+
+      def self.inherited(subclass)
+        Consumer.register_handler(subclass.new)
+      end
     end
 
-    # Consumer logic
+    # Default handler that just inspects the message
+    class DefaultHandler < Handler
+      def handle(message)
+        puts "#{message.inspect}"
+      end
+    end
+
     def initialize(host = Consumer.configuration.host, port = Consumer.configuration.port)
       @host = host
       @port = port
@@ -36,36 +62,22 @@ module Kafkr
 
     def listen
       attempt = 0
-
       loop do
-        socket = nil
-        while socket.nil?
-          begin
-            Timeout.timeout(10) do
-              socket = TCPSocket.new(@host, @port)
-            end
-            puts "Connected to server." if attempt == 0
-            attempt = 0
-          rescue Errno::ECONNREFUSED, Timeout::Error
-            attempt += 1
-            wait_time = backoff_time(attempt)
-            puts "Failed to connect on attempt #{attempt}. Retrying in #{wait_time} seconds..."
-            sleep(wait_time)
-          end
-        end
-
         begin
+          socket = TCPSocket.new(@host, @port)
+          puts "Connected to server." if attempt == 0
+          attempt = 0
+          
           loop do
             message = socket.gets
-            if message.nil?
-              raise LostConnection
+            raise LostConnection if message.nil?
+
+            # Assuming Kafkr::Encryptor is defined elsewhere
+            message = Kafkr::Encryptor.new.decrypt(message.chomp) 
+            if valid_json?(message)
+              dispatch_to_handlers(JSON.parse(message)) 
             else
-              message =  Kafkr::Encryptor.new.decrypt(message.chomp) # Decrypt the message here
-              if valid_json?(message.chomp)
-                p JSON.parse(message.chomp) 
-              else
-                puts message.chomp
-              end
+              dispatch_to_handlers(message)
             end
           end
         rescue LostConnection
@@ -73,9 +85,14 @@ module Kafkr
           wait_time = backoff_time(attempt)
           puts "Connection lost. Reconnecting in #{wait_time} seconds..."
           sleep(wait_time)
+        rescue Errno::ECONNREFUSED, Timeout::Error
+          attempt += 1
+          wait_time = backoff_time(attempt)
+          puts "Failed to connect on attempt #{attempt}. Retrying in #{wait_time} seconds..."
+          sleep(wait_time)
         rescue Interrupt
           puts "Received interrupt signal. Shutting down consumer gracefully..."
-          socket.close if socket
+          socket&.close
           exit(0)
         end
       end
@@ -93,5 +110,12 @@ module Kafkr
     alias_method :connect, :listen
     alias_method :monitor, :listen
     alias_method :observe, :listen
+
+    private
+
+    def dispatch_to_handlers(message)
+      message_hash = message.is_a?(String) ? { message: { body: message } } : message
+      self.class.handlers.each { |handler| handler.handle(message_hash) }
+    end
   end
 end
