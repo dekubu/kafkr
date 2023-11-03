@@ -15,7 +15,7 @@ begin
 
   while line = Readline.readline("> ", true)
     break if line == "exit"
-    Kafkr::Producer.send_message(line)
+    Kafkr::Producer.send_message({message: "hgell"})
   end
 rescue => e
   puts "An error occurred: #{e.message}"
