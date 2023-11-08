@@ -36,28 +36,21 @@ module Kafkr
     end
 
     class Handler
+      def handle?(message)
+        false
+      end
+    
       def handle(message)
         raise NotImplementedError, 'You must implement the handle method'
       end
 
-      def send_message(message)
-        producer = Producer.new
-        producer.send_message(message)
-        puts "Handler sending message: #{message.inspect}"
-      end
-
+      # ... rest of your existing Handler methods ...
       def self.inherited(subclass)
         Consumer.register_handler(subclass.new)
       end
     end
 
-    # Default handler that just inspects the message
-    class DefaultHandler < Handler
-      def handle(message)
-        puts "DefaultHandler received message: #{message.inspect}"
-      end
-    end
-
+    
     def initialize(host = Consumer.configuration.host, port = Consumer.configuration.port)
       @host = host
       @port = port
@@ -130,7 +123,9 @@ module Kafkr
 
     def dispatch_to_handlers(message)
       message_hash = message.is_a?(String) ? { message: { body: message } } : message
-      self.class.handlers.each { |handler| handler.handle(message_hash) }
+      self.class.handlers.each do |handler|
+        handler.handle(message_hash) if handler.handle?(message_hash)
+      end
       yield message_hash if block_given?
     end
   end
