@@ -48,7 +48,6 @@ module Kafkr
             require file
             $loaded_handlers[handler_name] = true
             $handlers_changed = true
-            puts "#{handler_name.capitalize} handler loaded - ok!"
           end
         end
   
