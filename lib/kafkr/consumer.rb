@@ -33,13 +33,13 @@ module Kafkr
       end
 
       def load_handlers(directory = "./handlers")
-        Dir.glob("#{directory}/**/*.rb").each do |file|
+        Dir.glob("#{directory}/**/*_handler.rb").each do |file|
           require file
-          handler_name = File.basename(file, "_handler.rb")
+          handler_name = File.basename(file, ".rb").gsub(/_handler$/, '').capitalize
           puts "#{handler_name} handler loaded - ok!"
         end
       end
-  
+        
     end
 
     class Handler

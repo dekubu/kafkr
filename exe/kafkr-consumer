@@ -20,10 +20,11 @@ end
 
 def list_registered_handlers
   Kafkr::Consumer.handlers.each do |handler|
-    handler_name = handler.class.name.split('::').last
-    handler_name.gsub!(/Handler$/, '')
+    handler_name = handler.class.name.split('::').last.gsub(/Handler$/, '').capitalize
+    puts "#{handler_name} handler registered."
   end
 end
+
 
 def start_consumer
   puts "Starting consumer on port #{PORT}!"
@@ -34,8 +35,9 @@ def start_consumer
   end
 
   unless $handlers_loaded
-    Kafkr::Consumer.load_handlers if  $handlers_changed == false
+    Kafkr::Consumer.load_handlers if $handlers_changed == false
     $handlers_loaded = true
+    list_registered_handlers # List handlers after initial load
   end
 
   $current_consumer = Kafkr::Consumer.new
@@ -46,15 +48,24 @@ end
 
 
 def reload_handlers(file_checksums)
+  handlers_before_reload = Kafkr::Consumer.handlers.dup # Store current handlers
   Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
     next unless File.file?(path)
     load path
   end
+
   if $handlers_changed
     Kafkr::Consumer.load_handlers 
-    list_registered_handlers
+    new_handlers = Kafkr::Consumer.handlers - handlers_before_reload
+    if new_handlers.any?
+      new_handlers.each do |handler|
+        handler_name = handler.class.name.split('::').last.gsub(/Handler$/, '').capitalize
+        puts "#{handler_name} handler updated - ok!"
+      end
+    end
   end
 end
+
 
 def monitor_handlers(file_checksums)
   loop do
