@@ -97,20 +97,29 @@ module Kafkr
     def print_handler_class(name)
       # If name is a string containing a space, print a message and return
       if name.is_a?(String) && name.include?(" ")
-        puts ""
         puts "No handler for #{name}"
+        return
+      end
+    
+      # If name is a Hash, use its first key
+      name = name.keys.first if name.is_a?(Hash)
+    
+      # Generate the handler name based on the naming convention
+      handler_name = "#{name.downcase}_handler"
+    
+      # Check if the handler is already loaded
+      if $loaded_handlers.key?(handler_name)
+        puts "A handler for #{name} already exists. Ignoring duplicate."
         return
       end
     
       puts "No handler for this message, you could use this one."
       puts ""
-      # If name is a Hash, use its first key
-      name = name.keys.first if name.is_a?(Hash)
     
       handler_class_string = <<~HANDLER_CLASS
         class #{name.capitalize}Handler < Kafkr::Consumer::Handler
           def handle?(message)
-            can_handle? message, #{name}
+            can_handle? message, '#{name}'
           end
     
           def handle(message)
@@ -119,9 +128,9 @@ module Kafkr
         end
       HANDLER_CLASS
     
-      puts ""
       puts handler_class_string
     end
+    
     
     
     def listen
