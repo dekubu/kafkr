@@ -9,6 +9,7 @@ $current_consumer = nil
 $restart_required = false
 $handlers_loaded = false
 $handlers_changed = false
+$loaded_handlers = {}
 
 Signal.trap('USR1') do
   $restart_required = true
@@ -21,6 +22,7 @@ end
 def list_registered_handlers
   puts "Registered Handlers:"
   Kafkr::Consumer.handlers.each do |handler|
+    $loaded_handlers = {}
     handler_name = handler.class.name.split('::').last.gsub(/Handler$/, '')
     puts "#{handler_name} handler registered."
   end
