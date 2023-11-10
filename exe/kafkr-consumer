@@ -40,7 +40,6 @@ def start_consumer
   unless $handlers_loaded
     Kafkr::Consumer.load_handlers if $handlers_changed == false
     $handlers_loaded = true
-    list_registered_handlers # List handlers after initial load
   end
 
   $current_consumer = Kafkr::Consumer.new
