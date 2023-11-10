@@ -54,7 +54,7 @@ module Kafkr
   
         # Display handlers if there are changes
         if $handlers_changed
-          self.class.list_registered_handlers
+          self.list_registered_handlers
           $handlers_changed = false
         end
       end
