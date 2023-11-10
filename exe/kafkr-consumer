@@ -26,17 +26,22 @@ end
 
 def start_consumer
   puts "Starting consumer on port #{PORT}!"
-  Kafkr::Consumer.configure { |config| config.port = PORT }
+
+  Kafkr::Consumer.configure do |config|
+    config.port = PORT
+  end
 
   unless $handlers_loaded
-    Kafkr::Consumer.load_handlers
+    Consumer.load_handlers
     $handlers_loaded = true
   end
-  list_registered_handlers
 
   $current_consumer = Kafkr::Consumer.new
-  $current_consumer.listen { |message| }
+  $current_consumer.listen do |message|
+    # Processing of the message
+  end
 end
+
 
 def reload_handlers(file_checksums)
   Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
