@@ -183,7 +183,6 @@ module Kafkr
   unless message_handled
     puts "No handler for this message, you could use this one."
     print_handler_class(message)
-    puts message
   end
 
   yield message_hash if block_given?
