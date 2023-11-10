@@ -45,7 +45,7 @@ module Kafkr
             $handlers_changed = true
           end
         end
-        private
+        
 
         def self.list_registered_handlers
           puts "Registered handlers:"
