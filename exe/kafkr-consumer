@@ -8,6 +8,7 @@ PORT = ENV['KAFKR_PORT'] || 4000
 $current_consumer = nil
 $restart_required = false
 $handlers_loaded = false
+$handlers_changed = false
 
 Signal.trap('USR1') do
   $restart_required = true
@@ -48,7 +49,7 @@ def reload_handlers(file_checksums)
     next unless File.file?(path)
     load path
   end
-  Kafkr::Consumer.load_handlers
+  Kafkr::Consumer.load_handlers if $handlers_changed
   list_registered_handlers
 end
 
@@ -62,6 +63,9 @@ def monitor_handlers(file_checksums)
       if file_checksums[path] != current_checksum
         file_checksums[path] = current_checksum
         changed = true
+        $handlers_changed = changed
+      else 
+        $handlers_changed = false
       end
     end
 
