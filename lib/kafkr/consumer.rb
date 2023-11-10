@@ -94,6 +94,7 @@ module Kafkr
       [fibonacci(attempt), fibonacci(5)].min
     end
 
+    #sugests a working handler
     def print_handler_class(name)
       # If name is a string containing a space, print a message and return
       if name.is_a?(String) && name.include?(" ")
