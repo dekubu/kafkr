@@ -34,6 +34,11 @@ module Kafkr
 
       $loaded_handlers = {}
       $handlers_changed = true
+
+      def list_registered_handlers
+        puts "Registered handlers:"
+        $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
+      end
   
       def load_handlers(directory = "./handlers")
         # Load handlers and check for new additions
@@ -54,10 +59,7 @@ module Kafkr
         end
       end
   
-      def list_registered_handlers
-        puts "Registered handlers:"
-        $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
-      end
+   
         
     end
 
