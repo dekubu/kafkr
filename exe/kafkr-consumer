@@ -32,7 +32,7 @@ def start_consumer
   end
 
   unless $handlers_loaded
-    Consumer.load_handlers
+    Kafkr::Consumer.load_handlers
     $handlers_loaded = true
   end
 
