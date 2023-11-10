@@ -21,12 +21,23 @@ def stop_consumer
   end
 end
 
+def list_registered_handlers
+  Kafkr::Consumer.handlers.each do |handler|
+    handler_name = handler.class.name.split('::').last
+    handler_name.gsub!(/Handler$/, '') # Remove 'Handler' from the name
+    puts "#{handler_name} loaded - ok!"
+  end
+end
+
 # Method to start the consumer
 def start_consumer
   puts "Starting consumer on port #{PORT}!"
   Kafkr::Consumer.configure do |config|
     config.port = PORT
   end
+
+  Kafkr::Consumer.load_handlers
+  list_registered_handlers
 
   $current_consumer = Kafkr::Consumer.new
   $current_consumer.listen do |message|
@@ -35,6 +46,7 @@ def start_consumer
 end
 
 def monitor_handlers
+  puts "monitoring!"
   last_checked = Time.now
 
   loop do
@@ -78,3 +90,5 @@ rescue Interrupt
 ensure
   monitoring_thread.kill if monitoring_thread
 end
+
+
