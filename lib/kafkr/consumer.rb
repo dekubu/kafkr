@@ -40,6 +40,7 @@ module Kafkr
         $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
       end
   
+      
       def load_handlers(directory = "./handlers")
         # Load handlers and check for new additions
         Dir.glob("#{directory}/*.rb").each do |file|
@@ -111,8 +112,6 @@ module Kafkr
     
       # Check if the handler is already loaded
       if $loaded_handlers.key?(handler_name)
-        return $loaded_handlers[handler_name].handle? name 
-        puts "#{name} loaded and is ignoring messages check the handle method"
         return
       end
     
