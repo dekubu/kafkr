@@ -33,7 +33,7 @@ module Kafkr
       end
 
       $loaded_handlers = {} 
-      
+
       def load_handlers(directory = "./handlers")
         Dir.glob("#{directory}/**/*_handler.rb").each do |file|
           handler_name = File.basename(file, ".rb").gsub("_handler", "")
@@ -44,6 +44,12 @@ module Kafkr
             $loaded_handlers[handler_name] = true
             $handlers_changed = true
           end
+        end
+        private
+
+        def self.list_registered_handlers
+          puts "Registered handlers:"
+          $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
         end
         
         list_registered_handlers if $handlers_changed
