@@ -16,7 +16,7 @@ begin
 
   # Example usage
   Kafkr::Consumer.new.listen do |message|
-    puts message
+    
   end
 rescue => e
   puts "An error occurred: #{e.message}"
