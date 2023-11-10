@@ -19,8 +19,9 @@ def stop_consumer
 end
 
 def list_registered_handlers
+  puts "Registered Handlers:"
   Kafkr::Consumer.handlers.each do |handler|
-    handler_name = handler.class.name.split('::').last.gsub(/Handler$/, '').capitalize
+    handler_name = handler.class.name.split('::').last.gsub(/Handler$/, '')
     puts "#{handler_name} handler registered."
   end
 end

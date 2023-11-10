@@ -34,10 +34,17 @@ module Kafkr
 
       def load_handlers(directory = "./handlers")
         Dir.glob("#{directory}/**/*_handler.rb").each do |file|
-          require file
-          handler_name = File.basename(file, ".rb").gsub(/_handler$/, '').capitalize
-          puts "#{handler_name} handler loaded - ok!"
+          handler_name = File.basename(file, ".rb").gsub("_handler", "")
+          
+          unless $loaded_handlers[handler_name]
+            require file
+            puts "#{handler_name} handler loaded - ok!"
+            $loaded_handlers[handler_name] = true
+            $handlers_changed = true
+          end
         end
+        
+        list_registered_handlers if $handlers_changed
       end
         
     end
