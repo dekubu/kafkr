@@ -110,6 +110,7 @@ module Kafkr
     
       # Check if the handler is already loaded
       if $loaded_handlers.key?(handler_name)
+        puts "#{name} loaded and is ignoring messages check the handle method"
         return
       end
     
