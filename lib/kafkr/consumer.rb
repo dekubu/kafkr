@@ -54,7 +54,7 @@ module Kafkr
         end
       end
   
-      def self.list_registered_handlers
+      def list_registered_handlers
         puts "Registered handlers:"
         $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
       end
