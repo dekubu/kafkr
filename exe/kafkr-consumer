@@ -53,6 +53,7 @@ def monitor_handlers
     changed = false
     puts "checking #{Kafkr::Consumer::HANDLERS_DIRECTORY} for changes!"
     Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
+      puts "checking #{path} for changes!"
       if File.file?(path) && File.mtime(path) > last_checked
         load path
         changed = true
