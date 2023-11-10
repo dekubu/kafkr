@@ -119,6 +119,7 @@ module Kafkr
       puts ""
     
       handler_class_string = <<~HANDLER_CLASS
+
         class #{name.capitalize}Handler < Kafkr::Consumer::Handler
           def handle?(message)
             can_handle? message, '#{name}'
@@ -128,6 +129,9 @@ module Kafkr
             puts message
           end
         end
+
+        save the file to ./handlers/#{name}_handler.rb
+
       HANDLER_CLASS
     
       puts handler_class_string
