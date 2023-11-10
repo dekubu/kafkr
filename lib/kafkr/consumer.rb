@@ -110,7 +110,7 @@ module Kafkr
       handler_class_string = <<~HANDLER_CLASS
         class #{name.capitalize}Handler < Kafkr::Consumer::Handler
           def handle?(message)
-            can_handle? #{message,name}
+            can_handle? message, #{name}
           end
     
           def handle(message)
