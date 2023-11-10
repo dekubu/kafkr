@@ -50,8 +50,10 @@ def reload_handlers(file_checksums)
     next unless File.file?(path)
     load path
   end
-  Kafkr::Consumer.load_handlers if $handlers_changed
-  list_registered_handlers
+  if $handlers_changed
+    Kafkr::Consumer.load_handlers 
+    list_registered_handlers
+  end
 end
 
 def monitor_handlers(file_checksums)
