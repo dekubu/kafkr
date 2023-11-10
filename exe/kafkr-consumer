@@ -2,6 +2,7 @@
 
 require "kafkr"
 require 'find'
+require 'digest'
 
 PORT = ENV["KAFKR_PORT"] || 4000
 $current_consumer = nil
@@ -47,14 +48,18 @@ end
 
 def monitor_handlers
   puts "monitoring!"
-  last_checked = Time.now
+  file_checksums = {}
 
   loop do
     changed = false
     puts "checking #{Kafkr::Consumer::HANDLERS_DIRECTORY} for changes!"
     Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
+      next unless File.file?(path)
+
       puts "checking #{path} for changes!"
-      if File.file?(path) && File.mtime(path) > last_checked
+      current_checksum = Digest::MD5.file(path).hexdigest
+      if file_checksums[path] != current_checksum
+        file_checksums[path] = current_checksum
         load path
         changed = true
       end
@@ -67,9 +72,9 @@ def monitor_handlers
     end
 
     sleep 5
-    last_checked = Time.now
   end
 end
+
 
 begin
   require "kafkr"
