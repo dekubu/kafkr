@@ -1,22 +1,21 @@
 #!/usr/bin/env ruby
 
-require "kafkr"
+require 'kafkr'
 require 'find'
 require 'digest'
 
-PORT = ENV["KAFKR_PORT"] || 4000
+PORT = ENV['KAFKR_PORT'] || 4000
 $current_consumer = nil
+$restart_required = false
 
 # Signal handler for restarting the consumer
-Signal.trap("USR1") do
-  puts "Received signal to restart consumer."
-  stop_consumer
-  start_consumer
+Signal.trap('USR1') do
+  $restart_required = true
 end
 
 def stop_consumer
   if $current_consumer
-    puts "Stopping current consumer..."
+    puts 'Stopping current consumer...'
     # Add logic to gracefully stop the consumer, e.g., closing connections
     $current_consumer = nil
   end
@@ -47,7 +46,7 @@ def start_consumer
 end
 
 def monitor_handlers
-  puts "monitoring!"
+  puts 'monitoring!'
   file_checksums = {}
 
   loop do
@@ -60,34 +59,35 @@ def monitor_handlers
       current_checksum = Digest::MD5.file(path).hexdigest
       if file_checksums[path] != current_checksum
         file_checksums[path] = current_checksum
-        load path
         changed = true
       end
     end
 
     if changed
-      puts "changed!"
+      puts 'changed!'
       Kafkr::Consumer.load_handlers
-      Process.kill("USR1", Process.pid)  # Sending signal to self to restart consumer
+      Process.kill('USR1', Process.pid)  # Sending signal to self to restart consumer
     end
 
     sleep 5
   end
 end
 
-
-begin
-  require "kafkr"
-rescue LoadError => e
-  puts "Failed to load Kafkr: #{e.message}"
-  exit(1)
-end
-
-
-# Main execution block
 begin
   monitoring_thread = Thread.new { monitor_handlers }
   start_consumer
+
+  loop do
+    if $restart_required
+      stop_consumer
+      start_consumer
+      $restart_required = false
+    end
+    sleep 1
+  end
+rescue LoadError => e
+  puts "Failed to load Kafkr: #{e.message}"
+  exit(1)
 rescue => e
   puts "An error occurred: #{e.message}"
   exit(1)
@@ -98,5 +98,3 @@ rescue Interrupt
 ensure
   monitoring_thread.kill if monitoring_thread
 end
-
-
