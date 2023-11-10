@@ -59,6 +59,7 @@ def monitor_handlers
     end
 
     if changed
+      puts "changed!"
       Kafkr::Consumer.load_handlers
       Process.kill("USR1", Process.pid)  # Sending signal to self to restart consumer
     end
