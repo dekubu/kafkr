@@ -7,8 +7,11 @@ require "json"
 module Kafkr
   class LostConnection < StandardError; end
 
+
   class Consumer
     @handlers = []
+    
+    HANDLERS_DIRECTORY="./handlers"
 
     class << self
       attr_reader :handlers

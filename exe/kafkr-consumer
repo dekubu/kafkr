@@ -1,5 +1,60 @@
 #!/usr/bin/env ruby
+
+require "kafkr"
+require 'find'
+
 PORT = ENV["KAFKR_PORT"] || 4000
+$current_consumer = nil
+
+# Signal handler for restarting the consumer
+Signal.trap("USR1") do
+  puts "Received signal to restart consumer."
+  stop_consumer
+  start_consumer
+end
+
+def stop_consumer
+  if $current_consumer
+    puts "Stopping current consumer..."
+    # Add logic to gracefully stop the consumer, e.g., closing connections
+    $current_consumer = nil
+  end
+end
+
+# Method to start the consumer
+def start_consumer
+  puts "Starting consumer on port #{PORT}!"
+  Kafkr::Consumer.configure do |config|
+    config.port = PORT
+  end
+
+  $current_consumer = Kafkr::Consumer.new
+  $current_consumer.listen do |message|
+    # Processing of the message
+  end
+end
+
+def monitor_handlers
+  last_checked = Time.now
+
+  loop do
+    changed = false
+    Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
+      if File.file?(path) && File.mtime(path) > last_checked
+        load path
+        changed = true
+      end
+    end
+
+    if changed
+      Kafkr::Consumer.load_handlers
+      Process.kill("USR1", Process.pid)  # Sending signal to self to restart consumer
+    end
+
+    sleep 5
+    last_checked = Time.now
+  end
+end
 
 begin
   require "kafkr"
@@ -8,21 +63,18 @@ rescue LoadError => e
   exit(1)
 end
 
-begin
-  puts "Consumer started on port #{PORT}!"
-  Kafkr::Consumer.configure do |config|
-    config.port = PORT
-  end
 
-  # Example usage
-  Kafkr::Consumer.new.listen do |message|
-    
-  end
+# Main execution block
+begin
+  monitoring_thread = Thread.new { monitor_handlers }
+  start_consumer
 rescue => e
   puts "An error occurred: #{e.message}"
   exit(1)
 rescue Interrupt
   puts "\nConsumer shutting down gracefully..."
-  server.stop if server.respond_to?(:stop)
+  stop_consumer
   exit(0)
+ensure
+  monitoring_thread.kill if monitoring_thread
 end
