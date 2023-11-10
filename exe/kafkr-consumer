@@ -27,6 +27,7 @@ end
 
 def start_consumer
   puts "Starting consumer on port #{PORT}!"
+  $handlers_changed = false
 
   Kafkr::Consumer.configure do |config|
     config.port = PORT
