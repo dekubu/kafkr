@@ -32,27 +32,31 @@ module Kafkr
         @handlers << handler
       end
 
-      $loaded_handlers = {} 
+      $loaded_handlers = {}
       $handlers_changed = true
-
+  
       def load_handlers(directory = "./handlers")
-        Dir.glob("#{directory}/**/*_handler.rb").each do |file|
-          handler_name = File.basename(file, ".rb").gsub("_handler", "")
-          
+        # Load handlers and check for new additions
+        Dir.glob("#{directory}/*.rb").each do |file|
+          handler_name = File.basename(file, '.rb')
           unless $loaded_handlers[handler_name]
             require file
             $loaded_handlers[handler_name] = true
             $handlers_changed = true
+            puts "#{handler_name.capitalize} handler loaded - ok!"
           end
         end
-        
-
-        def self.list_registered_handlers
-          puts "Registered handlers:"
-          $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
+  
+        # Display handlers if there are changes
+        if $handlers_changed
+          self.class.list_registered_handlers
+          $handlers_changed = false
         end
-        
-        list_registered_handlers if $handlers_changed
+      end
+  
+      def self.list_registered_handlers
+        puts "Registered handlers:"
+        $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
       end
         
     end
