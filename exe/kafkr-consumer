@@ -7,54 +7,41 @@ require 'digest'
 PORT = ENV['KAFKR_PORT'] || 4000
 $current_consumer = nil
 $restart_required = false
+$handlers_loaded = false
 
-# Signal handler for setting a restart flag
 Signal.trap('USR1') do
   $restart_required = true
 end
 
 def stop_consumer
-  if $current_consumer
-    puts 'Stopping current consumer...'
-    # Add logic to gracefully stop the consumer, e.g., closing connections
-    $current_consumer = nil
-  end
+  $current_consumer = nil if $current_consumer
 end
 
 def list_registered_handlers
   Kafkr::Consumer.handlers.each do |handler|
     handler_name = handler.class.name.split('::').last
-    handler_name.gsub!(/Handler$/, '') # Remove 'Handler' from the name
+    handler_name.gsub!(/Handler$/, '')
     puts "#{handler_name} loaded - ok!"
   end
 end
 
-# Method to start the consumer
 def start_consumer
   puts "Starting consumer on port #{PORT}!"
-  Kafkr::Consumer.configure do |config|
-    config.port = PORT
-  end
+  Kafkr::Consumer.configure { |config| config.port = PORT }
 
-  if Kafkr::Consumer.handlers.empty?
-    puts 'Loading handlers for the first time...'
+  unless $handlers_loaded
     Kafkr::Consumer.load_handlers
-  else
-    puts 'Handlers already loaded, skipping...'
+    $handlers_loaded = true
   end
   list_registered_handlers
 
   $current_consumer = Kafkr::Consumer.new
-  $current_consumer.listen do |message|
-    # Processing of the message
-  end
+  $current_consumer.listen { |message| }
 end
 
 def reload_handlers(file_checksums)
-  puts 'Reloading handlers...'
   Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
     next unless File.file?(path)
-
     load path
   end
   Kafkr::Consumer.load_handlers
@@ -62,7 +49,6 @@ def reload_handlers(file_checksums)
 end
 
 def monitor_handlers(file_checksums)
-  puts 'Monitoring for handler changes...'
   loop do
     changed = false
     Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
@@ -71,13 +57,11 @@ def monitor_handlers(file_checksums)
       current_checksum = Digest::MD5.file(path).hexdigest
       if file_checksums[path] != current_checksum
         file_checksums[path] = current_checksum
-        puts "Change detected in #{path}"
         changed = true
       end
     end
 
     reload_handlers(file_checksums) if changed
-
     sleep 5
   end
 end
@@ -89,7 +73,6 @@ start_consumer
 begin
   loop do
     if $restart_required
-      puts 'Restart signal received. Restarting consumer...'
       stop_consumer
       start_consumer
       $restart_required = false
@@ -97,13 +80,10 @@ begin
     sleep 1
   end
 rescue LoadError => e
-  puts "Failed to load Kafkr: #{e.message}"
   exit(1)
 rescue => e
-  puts "An error occurred: #{e.message}"
   exit(1)
 rescue Interrupt
-  puts "\nConsumer shutting down gracefully..."
   stop_consumer
   exit(0)
 ensure
