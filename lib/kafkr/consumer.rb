@@ -33,6 +33,7 @@ module Kafkr
       end
 
       $loaded_handlers = {} 
+      $handlers_changed = true
 
       def load_handlers(directory = "./handlers")
         Dir.glob("#{directory}/**/*_handler.rb").each do |file|
