@@ -76,14 +76,17 @@ module Kafkr
         Consumer.register_handler(subclass.new)
       end
       private
-      def can_handle?(message, name, ignore: :string
+      def can_handle?(message, name, ignore: :any)
         if ignore == :hash
+          return true if message[:message] && message[:message][:body] && message[:message][:body] == name
+        elsif ignore == :string
           return true if message.key? name
-        end
-        
-        if ignore == :string
+        else
+          return true if message.key? name
           return true if message[:message] && message[:message][:body] && message[:message][:body] == name
         end
+
+
 
         false
       end  
