@@ -76,6 +76,7 @@ module Kafkr
       end
       private
       def can_handle?(message,name)
+        puts message
         if message.is_a? Hash
           message.key?(name)
         else
