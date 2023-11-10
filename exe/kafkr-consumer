@@ -34,7 +34,7 @@ def start_consumer
   end
 
   unless $handlers_loaded
-    Kafkr::Consumer.load_handlers if  $handlers_loaded == false
+    Kafkr::Consumer.load_handlers if  $handlers_changed == false
     $handlers_loaded = true
   end
 
@@ -66,16 +66,16 @@ def monitor_handlers(file_checksums)
       if file_checksums[path] != current_checksum
         file_checksums[path] = current_checksum
         changed = true
-        $handlers_changed = changed
-      else 
-        $handlers_changed = false
       end
     end
 
-    reload_handlers(file_checksums) if changed
+    $handlers_changed = changed # Set outside the loop
+
+    reload_handlers(file_checksums) if $handlers_changed
     sleep 5
   end
 end
+
 
 file_checksums = {}
 monitoring_thread = Thread.new { monitor_handlers(file_checksums) }
