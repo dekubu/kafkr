@@ -95,22 +95,30 @@ module Kafkr
     end
 
     def print_handler_class(name)
+      # If name is a string containing a space, print a message and return
+      if name.is_a?(String) && name.include?(" ")
+        puts "No handler for #{name}"
+        return
+      end
+    
+      # If name is a Hash, use its first key
+      name = name.keys.first if name.is_a?(Hash)
+    
       handler_class_string = <<~HANDLER_CLASS
-
-        class #{name.capitalize} < Kafkr::Consumer::Handler
+        class #{name.capitalize}Handler < Kafkr::Consumer::Handler
           def handle?(message)
-            can_handle? #{name}
+            can_handle? #{name.inspect}
           end
     
           def handle(message)
             puts message
           end
         end
-
       HANDLER_CLASS
     
       puts handler_class_string
     end
+    
     
     def listen
       attempt = 0
