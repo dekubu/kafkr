@@ -90,6 +90,38 @@ module Kafkr
       [fibonacci(attempt), fibonacci(5)].min
     end
 
+    def print_handler_class(name)
+      handler_class_string = <<~HANDLER_CLASS
+        class #{name} < Kafkr::Consumer::Handler
+          def handle?(message)
+            message.key?(:message) && message[:message].key?(:body) && message[:message][:body].start_with?("name")
+          end
+    
+          def handle(message)
+            puts message
+          end
+        end
+      HANDLER_CLASS
+    
+      puts handler_class_string
+    end
+
+    def print_handler_class(name)
+      handler_class_string = <<~HANDLER_CLASS
+        class #{name} < Kafkr::Consumer::Handler
+          def handle?(message)
+            message.key?(:message) && message[:message].key?(:body) && message[:message][:body].start_with?("name")
+          end
+    
+          def handle(message)
+            puts message
+          end
+        end
+      HANDLER_CLASS
+    
+      puts handler_class_string
+    end
+    
     def listen
       attempt = 0
       loop do
@@ -159,7 +191,8 @@ module Kafkr
   end
 
   unless message_handled
-    puts "Message ignored"
+    puts "No handler for this message, you could use this one."
+    print_handler_class(message)
     puts message
   end
 
