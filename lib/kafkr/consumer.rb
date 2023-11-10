@@ -32,6 +32,8 @@ module Kafkr
         @handlers << handler
       end
 
+      $loaded_handlers = {} 
+      
       def load_handlers(directory = "./handlers")
         Dir.glob("#{directory}/**/*_handler.rb").each do |file|
           handler_name = File.basename(file, ".rb").gsub("_handler", "")
