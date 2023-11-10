@@ -40,7 +40,6 @@ module Kafkr
           
           unless $loaded_handlers[handler_name]
             require file
-            puts "#{handler_name} handler loaded - ok!"
             $loaded_handlers[handler_name] = true
             $handlers_changed = true
           end
