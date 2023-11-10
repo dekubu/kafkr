@@ -39,6 +39,7 @@ def start_consumer
 
   unless $handlers_loaded
     Kafkr::Consumer.load_handlers if $handlers_changed == false
+    list_registered_handlers
     $handlers_loaded = true
   end
 
