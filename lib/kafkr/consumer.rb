@@ -76,7 +76,7 @@ module Kafkr
       end
       private
       def can_handle?(message,name)
-        message.key?(:message) && message.has_key?(name)
+        message.key?(name)
       end
     end
 
