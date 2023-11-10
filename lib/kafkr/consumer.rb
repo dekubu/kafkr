@@ -75,7 +75,7 @@ module Kafkr
         Consumer.register_handler(subclass.new)
       end
       private
-      def can_handle?(name)
+      def can_handle?(message,name)
         message.key?(:message) && message[:message].key?(:body) && message[:message][:body].start_with?(name)
       end
     end
@@ -110,7 +110,7 @@ module Kafkr
       handler_class_string = <<~HANDLER_CLASS
         class #{name.capitalize}Handler < Kafkr::Consumer::Handler
           def handle?(message)
-            can_handle? #{name.inspect}
+            can_handle? #{message,name}
           end
     
           def handle(message)
