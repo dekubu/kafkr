@@ -21,7 +21,6 @@ def list_registered_handlers
   Kafkr::Consumer.handlers.each do |handler|
     handler_name = handler.class.name.split('::').last
     handler_name.gsub!(/Handler$/, '')
-    puts "#{handler_name} loaded - ok!"
   end
 end
 
