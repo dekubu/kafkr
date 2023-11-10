@@ -121,13 +121,25 @@ module Kafkr
 
     private
 
-    def dispatch_to_handlers(message)
-      message_hash = message.is_a?(String) ? { message: { body: message } } : message
-      self.class.handlers.each do |handler|
-        handler.handle(message_hash) if handler.handle?(message_hash)
-      end
-      yield message_hash if block_given?
+   def dispatch_to_handlers(message)
+  message_handled = false
+  message_hash = message.is_a?(String) ? { message: { body: message } } : message
+
+  self.class.handlers.each do |handler|
+    if handler.handle?(message_hash)
+      handler.handle(message_hash)
+      message_handled = true
     end
+  end
+
+  unless message_handled
+    puts "Message ignored"
+    puts message
+  end
+
+  yield message_hash if block_given?
+end
+
   end
 
   # Assuming the handlers directory is the default location
