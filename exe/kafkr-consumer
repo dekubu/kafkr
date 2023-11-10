@@ -7,7 +7,7 @@ require 'digest'
 PORT = ENV['KAFKR_PORT'] || 4000
 $current_consumer = nil
 $restart_required = false
-$handlers_loaded = false
+$handlers_loaded = false # Flag to check if handlers are already loaded
 
 # Signal handler for setting a restart flag
 Signal.trap('USR1') do
@@ -37,7 +37,7 @@ def start_consumer
     config.port = PORT
   end
 
-  if !$handlers_loaded
+  unless $handlers_loaded # Load handlers only if not already loaded
     Kafkr::Consumer.load_handlers
     $handlers_loaded = true
   end
@@ -50,7 +50,7 @@ def start_consumer
 end
 
 def reload_handlers(file_checksums)
-  puts 'Reloading handlers...'
+  #puts 'Reloading handlers...'
   Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
     next unless File.file?(path)
 
@@ -61,7 +61,7 @@ def reload_handlers(file_checksums)
 end
 
 def monitor_handlers(file_checksums)
-  puts 'Monitoring for handler changes...'
+  #puts 'Monitoring for handler changes...'
   loop do
     changed = false
     Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
@@ -70,7 +70,7 @@ def monitor_handlers(file_checksums)
       current_checksum = Digest::MD5.file(path).hexdigest
       if file_checksums[path] != current_checksum
         file_checksums[path] = current_checksum
-        puts "Change detected in #{path}"
+        #puts "Change detected in #{path}"
         changed = true
       end
     end
@@ -88,7 +88,7 @@ start_consumer
 begin
   loop do
     if $restart_required
-      puts 'Restart signal received. Restarting consumer...'
+      #puts 'Restart signal received. Restarting consumer...'
       stop_consumer
       start_consumer
       $restart_required = false
