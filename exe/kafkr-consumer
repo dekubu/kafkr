@@ -10,6 +10,7 @@ $restart_required = false
 
 # Signal handler for restarting the consumer
 Signal.trap('USR1') do
+  puts "signa recieved!!"
   $restart_required = true
 end
 
@@ -51,11 +52,8 @@ def monitor_handlers
 
   loop do
     changed = false
-    puts "checking #{Kafkr::Consumer::HANDLERS_DIRECTORY} for changes!"
     Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
       next unless File.file?(path)
-
-      puts "checking #{path} for changes!"
       current_checksum = Digest::MD5.file(path).hexdigest
       if file_checksums[path] != current_checksum
         file_checksums[path] = current_checksum
@@ -66,7 +64,9 @@ def monitor_handlers
     if changed
       puts 'changed!'
       Kafkr::Consumer.load_handlers
+      puts 'hanlders reloaded!'
       Process.kill('USR1', Process.pid)  # Sending signal to self to restart consumer
+      puts 'signal sent!'
     end
 
     sleep 5
