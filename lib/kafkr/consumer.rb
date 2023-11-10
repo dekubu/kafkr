@@ -74,6 +74,10 @@ module Kafkr
       def self.inherited(subclass)
         Consumer.register_handler(subclass.new)
       end
+      private
+      def can_handle?(name)
+        message.key?(:message) && message[:message].key?(:body) && message[:message][:body].start_with?(name)
+      end
     end
 
     
@@ -92,7 +96,8 @@ module Kafkr
 
     def print_handler_class(name)
       handler_class_string = <<~HANDLER_CLASS
-        class #{name} < Kafkr::Consumer::Handler
+
+        class #{name.capitalize} < Kafkr::Consumer::Handler
           def handle?(message)
             message.key?(:message) && message[:message].key?(:body) && message[:message][:body].start_with?("name")
           end
@@ -101,6 +106,7 @@ module Kafkr
             puts message
           end
         end
+        
       HANDLER_CLASS
     
       puts handler_class_string
@@ -110,7 +116,7 @@ module Kafkr
       handler_class_string = <<~HANDLER_CLASS
         class #{name} < Kafkr::Consumer::Handler
           def handle?(message)
-            message.key?(:message) && message[:message].key?(:body) && message[:message][:body].start_with?("name")
+            can_handle? message
           end
     
           def handle(message)
