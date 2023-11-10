@@ -77,6 +77,7 @@ module Kafkr
       end
       private
       def can_handle?(message, name)
+        return true if message.key? name.to_sym
         return true if message[:message] && message[:message][:body] && message[:message][:body] == name
         false
       end  
