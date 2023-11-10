@@ -101,6 +101,8 @@ module Kafkr
         return
       end
     
+      puts "No handler for this message, you could use this one."
+      puts ""
       # If name is a Hash, use its first key
       name = name.keys.first if name.is_a?(Hash)
     
@@ -116,6 +118,7 @@ module Kafkr
         end
       HANDLER_CLASS
     
+      puts ""
       puts handler_class_string
     end
     
@@ -189,7 +192,6 @@ module Kafkr
   end
 
   unless message_handled
-    puts "No handler for this message, you could use this one."
     print_handler_class(message)
   end
 
