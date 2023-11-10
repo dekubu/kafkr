@@ -78,8 +78,8 @@ module Kafkr
       def can_handle?(message,name)
         puts message
         return true if message.key?(name)
-        return true if message.has_key? :body && message[:body] == name
-        return false
+        return true if message[:message].has_key? :body && message[:body] == name
+        false
       end
     end
 
