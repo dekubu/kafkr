@@ -32,10 +32,14 @@ module Kafkr
         @handlers << handler
       end
 
-      # Dynamically load handlers from a given directory
       def load_handlers(directory = "./handlers")
-        Dir.glob("#{directory}/**/*.rb").each { |file| require file }
+        Dir.glob("#{directory}/**/*.rb").each do |file|
+          require file
+          handler_name = File.basename(file, "_handler.rb")
+          puts "#{handler_name} handler loaded - ok!"
+        end
       end
+  
     end
 
     class Handler
