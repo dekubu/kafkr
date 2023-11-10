@@ -110,7 +110,6 @@ module Kafkr
     
       # Check if the handler is already loaded
       if $loaded_handlers.key?(handler_name)
-        puts "A handler for #{name} already exists. Ignoring duplicate."
         return
       end
     
