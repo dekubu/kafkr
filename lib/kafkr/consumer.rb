@@ -129,7 +129,7 @@ module Kafkr
         return
       end
 
-      if valid_class_name? name
+      if valid_class_name? name.capitalize
         puts "No handler for this message, you could use this one."
         puts ""
       
