@@ -11,24 +11,26 @@ module Kafkr
       @subscribers << socket
       @last_sent[socket] = nil
     end
-
+    
     def broadcast(message)
       Kafkr.log message
-
+    
       encrypted_message = Kafkr::Encryptor.new.encrypt(message)
-
+    
       @subscribers.each do |subscriber|
-        if !subscriber.closed?
-          begin
+        begin
+          if !subscriber.closed?
             subscriber.puts(encrypted_message)
             @last_sent[subscriber] = encrypted_message
-          rescue Errno::EPIPE
           end
+        rescue Errno::EPIPE
+          # Optionally, handle broken pipe error
+        rescue IOError
+          @subscribers.delete(subscriber)
+          @last_sent.delete(subscriber)
         end
-      rescue IOError
-        @subscribers.delete(subscriber)
-        @last_sent.delete(subscriber)
       end
     end
+
   end
 end
