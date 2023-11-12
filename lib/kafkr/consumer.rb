@@ -81,11 +81,13 @@ module Kafkr
           return true if message == name.to_i
         elsif ignore == :hash
           return true if message[:message] && message[:message][:body] && message[:message][:body] == name
+          return true if message[:message] && message[:message][:body] && message[:message][:body].start_with? == name
         elsif ignore == :string
           return true if message.key? name
         else
           return true if message.key? name
           return true if message[:message] && message[:message][:body] && message[:message][:body] == name
+          return true if message[:message] && message[:message][:body] && message[:message][:body].start_with? == name
         end
 
 
@@ -218,7 +220,7 @@ module Kafkr
 
     puts "handler: #{handler.inspect}"
     puts "message: #{message.inspect}"
-    
+
     if handler.handle?(message_hash)
       handler.handle(message_hash)
     end
