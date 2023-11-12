@@ -77,7 +77,9 @@ module Kafkr
       end
       private
       def can_handle?(message, name, ignore: :any)
-        if ignore == :hash
+        if message.is_a?(Numeric)
+          return true message == name.to_i
+        elsif ignore == :hash
           return true if message[:message] && message[:message][:body] && message[:message][:body] == name
         elsif ignore == :string
           return true if message.key? name
@@ -108,7 +110,6 @@ module Kafkr
 
     #sugests a working handler
     def print_handler_class(name)
-      
       return if name.is_a?(Numeric)
 
       # If name is a string containing a space, print a message and return
