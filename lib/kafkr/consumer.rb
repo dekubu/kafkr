@@ -64,7 +64,7 @@ module Kafkr
 
     class Handler
       def handle?(message)
-        false
+        raise NotImplementedError, 'You must implement the handle? method'
       end
     
       def handle(message)
@@ -107,6 +107,12 @@ module Kafkr
       [fibonacci(attempt), fibonacci(5)].min
     end
 
+    def valid_class_name?(name)
+      # A valid class name starts with an uppercase letter and 
+      # followed by zero or more letters, numbers, or underscores.
+      /^[A-Z]\w*$/.match?(name)
+    end
+
     #sugests a working handler
     def print_handler_class(name)
       
@@ -122,27 +128,29 @@ module Kafkr
       if $loaded_handlers.key?(handler_name)
         return
       end
-    
-      puts "No handler for this message, you could use this one."
-      puts ""
-    
-      handler_class_string = <<~HANDLER_CLASS
 
-        class #{name.capitalize}Handler < Kafkr::Consumer::Handler
-          def handle?(message)
-            can_handle? message, '#{name}'
+      if valid_class_name? name
+        puts "No handler for this message, you could use this one."
+        puts ""
+      
+        handler_class_string = <<~HANDLER_CLASS
+
+          class #{name.capitalize}Handler < Kafkr::Consumer::Handler
+            def handle?(message)
+              can_handle? message, '#{name}'
+            end
+      
+            def handle(message)
+              puts message
+            end
           end
-    
-          def handle(message)
-            puts message
-          end
+
+          save the file to ./handlers/#{name}_handler.rb
+
+        HANDLER_CLASS
+      
+        puts handler_class_string  
         end
-
-        save the file to ./handlers/#{name}_handler.rb
-
-      HANDLER_CLASS
-    
-      puts handler_class_string
     end
     
     
@@ -209,12 +217,6 @@ module Kafkr
   message_hash = message.is_a?(String) ? { message: { body: message } } : message
 
   self.class.handlers.each do |handler|
-
-    puts "handler: #{handler.inspect}"
-    puts "message: #{message.class}"
-    puts "message_hash: #{message}"
-
-
     if handler.handle?(message_hash)
       handler.handle(message_hash)
     end
