@@ -78,7 +78,7 @@ module Kafkr
       private
       def can_handle?(message, name, ignore: :any)
         if message.is_a?(Numeric)
-          return true message == name.to_i
+          return true if message == name.to_i
         elsif ignore == :hash
           return true if message[:message] && message[:message][:body] && message[:message][:body] == name
         elsif ignore == :string
