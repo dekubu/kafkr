@@ -108,6 +108,9 @@ module Kafkr
 
     #sugests a working handler
     def print_handler_class(name)
+      
+      return if name.is_a?(Numeric)
+
       # If name is a string containing a space, print a message and return
       if name.is_a?(String) && name.include?(" ")
         puts "No handler for #{name}"
