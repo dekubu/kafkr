@@ -215,6 +215,10 @@ module Kafkr
   message_hash = message.is_a?(String) ? { message: { body: message } } : message
 
   self.class.handlers.each do |handler|
+
+    puts "handler: #{handler.inspect}"
+    puts "message: #{message.inspect}"
+    
     if handler.handle?(message_hash)
       handler.handle(message_hash)
     end
