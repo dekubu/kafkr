@@ -89,9 +89,6 @@ module Kafkr
           return true if message[:message] && message[:message][:body] && message[:message][:body] == name
           return true if message[:message] && message[:message][:body] && message[:message][:body].start_with? == name
         end
-
-
-
         false
       end  
     end
@@ -219,7 +216,9 @@ module Kafkr
   self.class.handlers.each do |handler|
 
     puts "handler: #{handler.inspect}"
-    puts "message: #{message.inspect}"
+    puts "message: #{message.class}"
+    puts "message_hash: #{message}"
+
 
     if handler.handle?(message_hash)
       handler.handle(message_hash)
