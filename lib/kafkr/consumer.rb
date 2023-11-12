@@ -109,17 +109,12 @@ module Kafkr
 
     #sugests a working handler
     def print_handler_class(name)
+      
       return if name.is_a?(Numeric)
-
-      # If name is a string containing a space, print a message and return
-      if name.is_a?(String) && name.include?(" ")
-        puts "No handler for #{name}"
-        return
-      end
-    
+      
       # If name is a Hash, use its first key
       name = name.keys.first if name.is_a?(Hash)
-    
+
       # Generate the handler name based on the naming convention
       handler_name = "#{name.downcase}_handler"
     
