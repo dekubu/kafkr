@@ -31,7 +31,7 @@ module Kafkr
       logger.error("Configuration error: #{e.message}")
     end
 
-    def self.structured_data_to_hash(input,sync_uid:)
+    def self.structured_data_to_hash(input:, sync_uid: )
       # Check the overall structure with regex and make quotes optional
       unless input.match(/\A\w+\s*(=>|<=>)\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
         return input
@@ -70,7 +70,7 @@ module Kafkr
     def self.send_message(message)
       uuid = SecureRandom.uuid
 
-      message =  structured_data_to_hash(message,sync_uid: uuid)
+      message =  structured_data_to_hash(input: message,sync_uid: uuid)
 
       if message.is_a? String
         message_with_uuid = "#{uuid}: #{message}"
