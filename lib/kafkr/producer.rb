@@ -113,16 +113,26 @@ module Kafkr
 
       uuid
     end
-    
+
     def self.send_message_and_wait(message)
+      # Flag to indicate when the consumer is ready
+      consumer_ready = false
+  
       # Starting the consumer in a separate thread
       consumer_thread = Thread.new do
-        Kafkr::Consumer.new.listen do |message|
+        Kafkr::Consumer.new.listen do |msg|
+          consumer_ready = true  # Set flag when consumer starts listening
           # Processing of the message
         end
       end
   
-      # Timeout block to limit the thread execution to 20 seconds
+      # Wait for the consumer to be ready
+      sleep 0.1 until consumer_ready
+  
+      # Send the message after the consumer is ready
+      send_message(message)
+  
+      # Apply a timeout of 20 seconds to the consumer's operation
       begin
         Timeout.timeout(20) do
           consumer_thread.join
@@ -134,9 +144,6 @@ module Kafkr
         # Ensure the consumer thread is terminated
         consumer_thread.kill
       end
-  
-      # Send the message after the consumer has been processed or timeout
-      send_message(message)
     end
     
     private
