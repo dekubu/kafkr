@@ -33,7 +33,7 @@ module Kafkr
 
     def self.structured_data_to_hash(input)
       # Check the overall structure with regex and make quotes optional
-      unless input.match(/\A\w+\s*=>\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
+      unless input.match(/\A\w+\s*(=>|<=>)\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
         return input
       end
     
@@ -47,7 +47,7 @@ module Kafkr
         hash_body = key_values.to_h do |key, value|
           [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
         end
-        
+
         # Return the final hash with the type as the key
         { type.to_sym => hash_body, sync: true }
 
