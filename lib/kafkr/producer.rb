@@ -31,7 +31,7 @@ module Kafkr
       logger.error("Configuration error: #{e.message}")
     end
 
-    def self.structured_data_to_hash(input)
+    def self.structured_data_to_hash(input,sync_uid:)
       # Check the overall structure with regex and make quotes optional
       unless input.match(/\A\w+\s*(=>|<=>)\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
         return input
@@ -49,7 +49,7 @@ module Kafkr
         end
 
         # Return the final hash with the type as the key
-        { type.to_sym => hash_body, sync: true }
+        { type.to_sym => hash_body, sync: true, sync_uid: sync_uid }
 
       else
         # Extract the type and key-value pairs
@@ -70,7 +70,7 @@ module Kafkr
     def self.send_message(message)
       uuid = SecureRandom.uuid
 
-      message =  structured_data_to_hash(message)
+      message =  structured_data_to_hash(message,sync_uid: uuid)
 
       if message.is_a? String
         message_with_uuid = "#{uuid}: #{message}"
@@ -102,6 +102,8 @@ module Kafkr
         puts "Broken pipe error. Retrying connection..."
         retry_connection(encrypted_message_with_uuid)
       end
+
+      uuid
     end
     
     private
