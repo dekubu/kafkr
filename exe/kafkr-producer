@@ -17,12 +17,11 @@ begin
     break if line == "exit"
 
     if line.include? "<=>"
-      puts "sync"
+      Kafkr::Producer.send_message_and_wait(line)
+    else
       Kafkr::Producer.send_message(line)
     end
-    
-    Kafkr::Producer.send_message(line)
-  
+
   end
 rescue => e
   puts "An error occurred: #{e.message}"

@@ -114,6 +114,10 @@ module Kafkr
       uuid
     end
     
+    def self.send_message_and_wait(message)
+      send_message(message)
+    end
+
     private
 
     def self.listen_for_acknowledgments(socket)
