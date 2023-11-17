@@ -39,12 +39,12 @@ module Kafkr
     
 
       if(input.include?("<=>"))
-        puts "sync message"
+        #puts "sync message"
         # Extract the type and key-value pairs
         type, key_values_str = input.split('<=>').map(&:strip)
 
-        puts type
-        puts key_values_str
+        #puts type
+        #puts key_values_str
         
 
         key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
@@ -58,7 +58,7 @@ module Kafkr
         { type.to_sym => hash_body, sync: true, sync_uid: sync_uid }
 
       else
-        puts "async message"
+        #puts "async message"
         # Extract the type and key-value pairs
         type, key_values_str = input.split('=>').map(&:strip)
         key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
