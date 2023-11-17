@@ -15,7 +15,14 @@ begin
 
   while line = Readline.readline("> ", true)
     break if line == "exit"
+
+    if line.include? "<=>"
+      puts "sync"
+      Kafkr::Producer.send_message(line)
+    end
+    
     Kafkr::Producer.send_message(line)
+  
   end
 rescue => e
   puts "An error occurred: #{e.message}"
