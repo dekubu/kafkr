@@ -37,17 +37,33 @@ module Kafkr
         return input
       end
     
-      # Extract the type and key-value pairs
-      type, key_values_str = input.split('=>').map(&:strip)
-      key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
-    
-      # Convert the array of pairs into a hash, stripping quotes if they exist
-      hash_body = key_values.to_h do |key, value|
-        [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
+
+      if(input.split("<=>"))
+        # Extract the type and key-value pairs
+        type, key_values_str = input.split('<=>').map(&:strip)
+        key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
+      
+        # Convert the array of pairs into a hash, stripping quotes if they exist
+        hash_body = key_values.to_h do |key, value|
+          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
+        end
+        
+        # Return the final hash with the type as the key
+        { type.to_sym => hash_body, sync: true }
+
+      else
+        # Extract the type and key-value pairs
+        type, key_values_str = input.split('=>').map(&:strip)
+        key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
+      
+        # Convert the array of pairs into a hash, stripping quotes if they exist
+        hash_body = key_values.to_h do |key, value|
+          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
+        end
+      
+        # Return the final hash with the type as the key
+        { type.to_sym => hash_body }
       end
-    
-      # Return the final hash with the type as the key
-      { type.to_sym => hash_body }
     end
   
 
