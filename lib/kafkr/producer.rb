@@ -115,9 +115,30 @@ module Kafkr
     end
     
     def self.send_message_and_wait(message)
+      # Starting the consumer in a separate thread
+      consumer_thread = Thread.new do
+        Kafkr::Consumer.new.listen do |message|
+          # Processing of the message
+        end
+      end
+  
+      # Timeout block to limit the thread execution to 20 seconds
+      begin
+        Timeout.timeout(20) do
+          consumer_thread.join
+        end
+      rescue Timeout::Error
+        # Handle the timeout, perhaps log it or take some action
+        puts "Consumer thread timed out after 20 seconds"
+      ensure
+        # Ensure the consumer thread is terminated
+        consumer_thread.kill
+      end
+  
+      # Send the message after the consumer has been processed or timeout
       send_message(message)
     end
-
+    
     private
 
     def self.listen_for_acknowledgments(socket)
