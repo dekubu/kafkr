@@ -64,6 +64,7 @@ module Kafkr
         # Return the final hash with the type as the key
         { type.to_sym => hash_body }
       end
+      
     end
   
 
