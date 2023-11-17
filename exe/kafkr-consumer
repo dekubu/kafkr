@@ -69,37 +69,27 @@ def reload_handlers(file_checksums)
   end
 end
 
+
 def monitor_handlers(file_checksums)
-  unless Dir.exist?(Kafkr::Consumer::HANDLERS_DIRECTORY)
-    # Create the directory
-    begin
-      Dir.mkdir(Kafkr::Consumer::HANDLERS_DIRECTORY)
-      puts "Directory created: #{Kafkr::Consumer::HANDLERS_DIRECTORY}"
-    rescue StandardError => e
-      # Handle any errors during directory creation
-      puts "Failed to create directory: #{e.message}"
-      return
-    end
-  end
+  loop do
+    changed = false
+    Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
+      next unless File.file?(path)
 
-  begin
-    loop do
-      changed = false
-      Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
-        # existing code...
+      current_checksum = Digest::MD5.file(path).hexdigest
+      if file_checksums[path] != current_checksum
+        file_checksums[path] = current_checksum
+        changed = true
       end
-
-      $handlers_changed = changed
-
-      reload_handlers(file_checksums) if $handlers_changed
-      sleep 5
     end
-  rescue StandardError => e
-    # Handle or log the exception
-    puts "An error occurred: #{e.message}"
-    # Implement retry logic, if needed
+
+    $handlers_changed = changed # Set outside the loop
+
+    reload_handlers(file_checksums) if $handlers_changed
+    sleep 5
   end
 end
+
 
 file_checksums = {}
 monitoring_thread = Thread.new { monitor_handlers(file_checksums) }
