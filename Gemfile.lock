@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kafkr (0.1.0)
+    kafkr (0.3.1)
       gibberish (~> 2.1)
 
 GEM
@@ -70,6 +70,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  arm64-darwin-23
 
 DEPENDENCIES
   gibberish (~> 2.1)
