@@ -56,6 +56,10 @@ module Kafkr
         puts "async message"
         # Extract the type and key-value pairs
         type, key_values_str = input.split('=>').map(&:strip)
+
+        puts type
+        puts key_values_str
+        
         key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
       
         # Convert the array of pairs into a hash, stripping quotes if they exist
