@@ -125,7 +125,7 @@ module Kafkr
 
         if received_message.key? "reply"
           puts "found reply!"
-          if received_message['uuid'] == sync_uid
+          if received_message.dig('uuid') == sync_uid
             puts "found reply! deal with payload"
           end
         end
