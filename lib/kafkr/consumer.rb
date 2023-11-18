@@ -71,6 +71,17 @@ module Kafkr
         Consumer.register_handler(subclass.new)
       end
 
+      protected
+
+      def reply to:, payload:
+    
+        Kafkr::Producer.configure do |config|
+          
+        end  
+    
+        Kafkr::Producer.send_message("reply => #{payload}, sync_uid: #{to["sync_uid"]}",acknowledge: false)
+      end
+
       private
 
       def can_handle?(message, name, ignore: :any)
