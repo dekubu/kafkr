@@ -98,6 +98,10 @@ module Kafkr
           else
             puts "Message with UUID #{uuid} has already been acknowledged. Skipping."
           end
+        else
+          socket = TCPSocket.new(@configuration.host, @configuration.port)
+          send_queued_messages(socket)
+          socket.puts(encrypted_message_with_uuid)
         end
       rescue Errno::ECONNREFUSED
         puts "Connection refused. Queuing message: #{encrypted_message_with_uuid}"
