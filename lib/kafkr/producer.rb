@@ -121,16 +121,6 @@ module Kafkr
       # Using method(:send_message) to pass the send_message method as a callable object
       Consumer.new.listen_for(message, self.method(:send_message)) do |received_message,sync_uid|
         
-        puts received_message.class
-
-        m = JSON.parse(received_message)  
-        if(m.key? "reply")
-          if m["sync_uid"] == sync_uid
-            puts m
-            puts "got reply! need to break the listening look and return value"
-          end
-        end
-
       end
     end
 

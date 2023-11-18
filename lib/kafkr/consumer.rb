@@ -175,12 +175,12 @@ module Kafkr
           loop do
             received_message = socket.gets
             raise LostConnection if received_message.nil?
-
             # Assuming Kafkr::Encryptor is defined elsewhere
-            received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)
-
+            received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)            
             # Yield every received message to the given block
-            yield received_message,sync_uid if block_given?
+            if valid_json?(received_message)
+              yield JSON.parse(received_message),sync_uid if block_given?
+            end
           end
         end
       rescue Timeout::Error
