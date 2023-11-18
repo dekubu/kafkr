@@ -170,7 +170,7 @@ module Kafkr
 
         Timeout.timeout(20) do
           # Call the provided send_message method or lambda, passing the message as an argument
-          send_message.call(message, acknowledge: false)
+          sync_uid = send_message.call(message, acknowledge: false)
 
           loop do
             received_message = socket.gets
@@ -180,7 +180,7 @@ module Kafkr
             received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)
 
             # Yield every received message to the given block
-            yield received_message if block_given?
+            yield received_message,sync_uid if block_given?
           end
         end
       rescue Timeout::Error
