@@ -179,7 +179,8 @@ module Kafkr
             received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)            
             # Yield every received message to the given block
             if valid_json?(received_message)
-              yield JSON.parse(received_message),sync_uid if block_given?
+               payload =yield JSON.parse(received_message),sync_uid if block_given?
+               return payload if payload
             end
           end
         end
