@@ -36,7 +36,7 @@ module Kafkr
       unless input.match(/\A\w+\s*(=>|<=>)\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
         return input
       end
-    
+
 
       if(input.include?("<=>"))
         #puts "sync message"
@@ -45,10 +45,10 @@ module Kafkr
 
         #puts type
         #puts key_values_str
-        
+
 
         key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
-      
+
         # Convert the array of pairs into a hash, stripping quotes if they exist
         hash_body = key_values.to_h do |key, value|
           [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
@@ -62,18 +62,18 @@ module Kafkr
         # Extract the type and key-value pairs
         type, key_values_str = input.split('=>').map(&:strip)
         key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
-      
+
         # Convert the array of pairs into a hash, stripping quotes if they exist
         hash_body = key_values.to_h do |key, value|
           [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
         end
-      
+
         # Return the final hash with the type as the key
         { type.to_sym => hash_body }
       end
 
     end
-  
+
 
     def self.send_message(message)
       uuid = SecureRandom.uuid
@@ -87,10 +87,10 @@ module Kafkr
       if message.is_a?(Hash)
         message_with_uuid = "#{uuid}: #{JSON.generate(message)}"
       end
-    
+
       # Encrypt the message here
       encrypted_message_with_uuid = Kafkr::Encryptor.new.encrypt(message_with_uuid)
-    
+
       begin
         if !@configuration.acknowledged_messages.include?(uuid)
           socket = TCPSocket.new(@configuration.host, @configuration.port)
@@ -115,37 +115,65 @@ module Kafkr
     end
 
     def self.send_message_and_wait(message)
-      # Flag to indicate when the consumer is ready
-      consumer_ready = false
-  
-      # Starting the consumer in a separate thread
-      consumer_thread = Thread.new do
-        Kafkr::Consumer.new.listen do |msg|
-          consumer_ready = true  # Set flag when consumer starts listening
-          # Processing of the message
+      # Shared state for signaling readiness and message reception
+      state = {
+        consumer_ready: false,
+        message_received: false,
+        payload: nil
+      }
+
+      # Consumer fiber
+      consumer_fiber = Fiber.new do
+        start_time = Time.now
+        loop do
+          # Simulate listening for a message
+          # Replace this with actual message listening logic
+          if message_arrives?
+            state[:message_received] = true
+            state[:payload] = get_message_payload
+            break
+          end
+
+          # Timeout check
+          if Time.now - start_time > 20
+            puts "Timeout: No message received in 20 seconds"
+            break
+          end
+
+          # Yield control to allow sender fiber to run
+          Fiber.yield
         end
       end
-  
-      # Wait for the consumer to be ready
-      sleep 0.1 until consumer_ready
-  
-      # Send the message after the consumer is ready
-      send_message(message)
-  
-      # Apply a timeout of 20 seconds to the consumer's operation
-      begin
-        Timeout.timeout(20) do
-          consumer_thread.join
+
+      # Sender fiber
+      sender_fiber = Fiber.new do
+        loop do
+          if state[:consumer_ready]
+            send_message(message) # Implement this method as needed
+            break
+          end
+          Fiber.yield
         end
-      rescue Timeout::Error
-        # Handle the timeout, perhaps log it or take some action
-        puts "Consumer thread timed out after 20 seconds"
-      ensure
-        # Ensure the consumer thread is terminated
-        consumer_thread.kill
       end
+
+      # Start consumer fiber
+      consumer_fiber.resume
+
+      # Indicate consumer is ready
+      state[:consumer_ready] = true
+
+      # Start sender fiber
+      sender_fiber.resume
+
+      # Resume fibers until message is received or timeout occurs
+      until state[:message_received]
+        consumer_fiber.resume
+        sender_fiber.resume
+      end
+
+      state[:payload] # Return the received payload
     end
-    
+
     private
 
     def self.listen_for_acknowledgments(socket)
