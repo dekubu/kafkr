@@ -5,7 +5,6 @@ require "securerandom"
 require "ostruct"
 require 'json'
 require 'fiber'
-
 module Kafkr
   module Producer
     @@file_mutex = Mutex.new
@@ -116,13 +115,14 @@ module Kafkr
     end
 
 
-
     def self.send_message_and_wait(message)
       consumer_ready = false
       consumer_fiber = Fiber.new do
         # Start the consumer
+        puts "Starting consumer..."
         Kafkr::Consumer.new.listen do |msg|
           consumer_ready = true  # Set flag when consumer starts listening
+          puts "Consumer is ready and listening..."
           # Processing of the message
           # Implement your message processing logic here
         end
@@ -130,7 +130,9 @@ module Kafkr
 
       sender_fiber = Fiber.new do
         # Wait until the consumer is ready before sending the message
+        puts "Waiting for consumer to be ready..."
         sleep 0.1 until consumer_ready
+        puts "Sending message..."
         send_message(message)  # Send the message
       end
 
@@ -140,6 +142,8 @@ module Kafkr
       # Start the sender fiber
       sender_fiber.resume
     end
+
+
     private
 
     def self.listen_for_acknowledgments(socket)
