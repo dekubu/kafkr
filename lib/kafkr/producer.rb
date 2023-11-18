@@ -4,6 +4,7 @@ require "fileutils"
 require "securerandom"
 require "ostruct"
 require 'json'
+require 'fiber'
 
 module Kafkr
   module Producer
@@ -115,9 +116,8 @@ module Kafkr
     end
 
 
-    require 'fiber'
 
-    def send_message_and_wait(message)
+    def self.send_message_and_wait(message)
       consumer_ready = false
       consumer_fiber = Fiber.new do
         # Start the consumer
