@@ -7,11 +7,10 @@ require "json"
 module Kafkr
   class LostConnection < StandardError; end
 
-
   class Consumer
     @handlers = []
-    
-    HANDLERS_DIRECTORY="./handlers"
+
+    HANDLERS_DIRECTORY = "./handlers"
 
     class << self
       attr_reader :handlers
@@ -39,43 +38,41 @@ module Kafkr
         puts "Registered handlers:"
         $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
       end
-  
-      
+
       def load_handlers(directory = "./handlers")
         # Load handlers and check for new additions
         Dir.glob("#{directory}/*.rb").each do |file|
-          handler_name = File.basename(file, '.rb')
+          handler_name = File.basename(file, ".rb")
           unless $loaded_handlers[handler_name]
             require file
             $loaded_handlers[handler_name] = true
             $handlers_changed = true
           end
         end
-  
+
         # Display handlers if there are changes
         if $handlers_changed
           $handlers_changed = false
         end
       end
-  
-   
-        
     end
 
     class Handler
       def handle?(message)
-        raise NotImplementedError, 'You must implement the handle? method'
+        raise NotImplementedError, "You must implement the handle? method"
       end
-    
+
       def handle(message)
-        raise NotImplementedError, 'You must implement the handle method'
+        raise NotImplementedError, "You must implement the handle method"
       end
 
       # ... rest of your existing Handler methods ...
       def self.inherited(subclass)
         Consumer.register_handler(subclass.new)
       end
+
       private
+
       def can_handle?(message, name, ignore: :any)
         if message.is_a?(Numeric)
           return true if message == name.to_i
@@ -90,10 +87,9 @@ module Kafkr
           return true if message[:message] && message[:message][:body] && message[:message][:body].start_with?(name)
         end
         false
-      end  
+      end
     end
 
-    
     def initialize(host = Consumer.configuration.host, port = Consumer.configuration.port)
       @host = host
       @port = port
@@ -108,22 +104,21 @@ module Kafkr
     end
 
     def valid_class_name?(name)
-      # A valid class name starts with an uppercase letter and 
+      # A valid class name starts with an uppercase letter and
       # followed by zero or more letters, numbers, or underscores.
       /^[A-Z]\w*$/.match?(name)
     end
 
-    #sugests a working handler
+    # sugests a working handler
     def print_handler_class(name)
-      
       return if name.is_a?(Numeric)
-      
+
       # If name is a Hash, use its first key
       name = name.keys.first if name.is_a?(Hash)
 
       # Generate the handler name based on the naming convention
       handler_name = "#{name.downcase}_handler"
-    
+
       # Check if the handler is already loaded
       if $loaded_handlers.key?(handler_name)
         return
@@ -132,7 +127,7 @@ module Kafkr
       if valid_class_name? name.capitalize
         puts "No handler for this message, you could use this one."
         puts ""
-      
+
         handler_class_string = <<~HANDLER_CLASS
 
           class #{name.capitalize}Handler < Kafkr::Consumer::Handler
@@ -148,52 +143,92 @@ module Kafkr
           save the file to ./handlers/#{name}_handler.rb
 
         HANDLER_CLASS
-      
-        puts handler_class_string  
-        end
+
+        puts handler_class_string
+      end
     end
-    
-    
-    
+
+    require "timeout"
+
+    def listen_for(message, send_message)
+      attempt = 0
+      begin
+        socket = TCPSocket.new(@host, @port)
+        puts "Connected to server." if attempt == 0
+        attempt = 0
+
+        Timeout.timeout(20) do
+          # Call the provided send_message method or lambda, passing the message as an argument
+          send_message.call(message)
+
+          loop do
+            received_message = socket.gets
+            raise LostConnection if received_message.nil?
+
+            # Assuming Kafkr::Encryptor is defined elsewhere
+            received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)
+
+            # Yield every received message to the given block
+            yield received_message if block_given?
+          end
+        end
+      rescue Timeout::Error
+        puts "Listening timed out after 20 seconds."
+        socket&.close
+      rescue LostConnection
+        attempt += 1
+        wait_time = backoff_time(attempt)
+        puts "Connection lost. Reconnecting in #{wait_time} seconds..."
+        sleep(wait_time)
+      rescue Errno::ECONNREFUSED, Timeout::Error
+        attempt += 1
+        wait_time = backoff_time(attempt)
+        puts "Failed to connect on attempt #{attempt}. Retrying in #{wait_time} seconds..."
+        sleep(wait_time)
+      rescue Interrupt
+        puts "Received interrupt signal. Shutting down consumer gracefully..."
+        socket&.close
+        exit(0)
+      end
+    end
+
     def listen
       attempt = 0
       loop do
-        begin
-          socket = TCPSocket.new(@host, @port)
-          puts "Connected to server." if attempt == 0
-          attempt = 0
+        socket = TCPSocket.new(@host, @port)
+        puts "Connected to server." if attempt == 0
+        attempt = 0
 
-          loop do
-            message = socket.gets
-            raise LostConnection if message.nil?
+        loop do
+          message = socket.gets
+          raise LostConnection if message.nil?
 
-            # Assuming Kafkr::Encryptor is defined elsewhere
-            message = Kafkr::Encryptor.new.decrypt(message.chomp) 
-            if valid_json?(message)
-               dispatch_to_handlers(JSON.parse(message)) do |message|
-                 yield message if block_given?
-               end
-            else
-              dispatch_to_handlers(message) do |message|
-                yield message if block_given?
-              end
+          # Assuming Kafkr::Encryptor is defined elsewhere
+          message = Kafkr::Encryptor.new.decrypt(message.chomp)
+          if valid_json?(message)
+            dispatch_to_handlers(JSON.parse(message)) do |message|
+              yield message if block_given?
+            end
+          else
+            dispatch_to_handlers(message) do |message|
+              yield message if block_given?
             end
           end
-        rescue LostConnection
-          attempt += 1
-          wait_time = backoff_time(attempt)
-          puts "Connection lost. Reconnecting in #{wait_time} seconds..."
-          sleep(wait_time)
-        rescue Errno::ECONNREFUSED, Timeout::Error
-          attempt += 1
-          wait_time = backoff_time(attempt)
-          puts "Failed to connect on attempt #{attempt}. Retrying in #{wait_time} seconds..."
-          sleep(wait_time)
-        rescue Interrupt
-          puts "Received interrupt signal. Shutting down consumer gracefully..."
-          socket&.close
-          exit(0)
         end
+      rescue LostConnection
+        attempt += 1
+        wait_time = backoff_time(attempt)
+        puts "Connection lost. Reconnecting in #{wait_time} seconds..."
+        sleep(wait_time)
+      rescue Errno::ECONNREFUSED, Timeout::Error
+        attempt += 1
+        wait_time = backoff_time(attempt)
+        puts "Failed to connect on attempt #{attempt}. Retrying in #{wait_time} seconds..."
+        sleep(wait_time)
+      rescue Interrupt
+        puts "Received interrupt signal. Shutting down consumer gracefully..."
+        socket&.close
+        exit(0)
       end
     end
 
@@ -212,22 +247,19 @@ module Kafkr
 
     private
 
-   def dispatch_to_handlers(message)
+    def dispatch_to_handlers(message)
+      message_hash = message.is_a?(String) ? {message: {body: message}} : message
 
-  message_hash = message.is_a?(String) ? { message: { body: message } } : message
+      self.class.handlers.each do |handler|
+        if handler.handle?(message_hash)
+          handler.handle(message_hash)
+        end
+      end
 
-  self.class.handlers.each do |handler|
-    if handler.handle?(message_hash)
-      handler.handle(message_hash)
+      print_handler_class(message)
+
+      yield message_hash if block_given?
     end
-  end
-
-  print_handler_class(message)
-  
-
-  yield message_hash if block_given?
-end
-
   end
 
   # Assuming the handlers directory is the default location

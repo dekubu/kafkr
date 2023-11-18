@@ -1,17 +1,17 @@
 #!/usr/bin/env ruby
 
-require 'kafkr'
-require 'find'
-require 'digest'
+require "kafkr"
+require "find"
+require "digest"
 
-PORT = ENV['KAFKR_PORT'] || 4000
+PORT = ENV["KAFKR_PORT"] || 4000
 $current_consumer = nil
 $restart_required = false
 $handlers_loaded = false
 $handlers_changed = false
 $loaded_handlers = {}
 
-Signal.trap('USR1') do
+Signal.trap("USR1") do
   $restart_required = true
 end
 
@@ -23,11 +23,10 @@ def list_registered_handlers
   puts "Registered Handlers:"
   Kafkr::Consumer.handlers.each do |handler|
     $loaded_handlers = {}
-    handler_name = handler.class.name.split('::').last.gsub(/Handler$/, '')
+    handler_name = handler.class.name.split("::").last.gsub(/Handler$/, "")
     puts "#{handler_name} handler registered."
   end
 end
-
 
 def start_consumer
   puts "Starting consumer on port #{PORT}!"
@@ -49,7 +48,6 @@ def start_consumer
   end
 end
 
-
 def reload_handlers(file_checksums)
   handlers_before_reload = Kafkr::Consumer.handlers.dup # Store current handlers
   Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
@@ -58,17 +56,16 @@ def reload_handlers(file_checksums)
   end
 
   if $handlers_changed
-    Kafkr::Consumer.load_handlers 
+    Kafkr::Consumer.load_handlers
     new_handlers = Kafkr::Consumer.handlers - handlers_before_reload
     if new_handlers.any?
       new_handlers.each do |handler|
-        handler_name = handler.class.name.split('::').last.gsub(/Handler$/, '').capitalize
+        handler_name = handler.class.name.split("::").last.gsub(/Handler$/, "").capitalize
         puts "#{handler_name} handler updated - ok!"
       end
     end
   end
 end
-
 
 def monitor_handlers(file_checksums)
   loop do
@@ -89,7 +86,6 @@ def monitor_handlers(file_checksums)
     sleep 5
   end
 end
-
 
 file_checksums = {}
 monitoring_thread = Thread.new { monitor_handlers(file_checksums) }

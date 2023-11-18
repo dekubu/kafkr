@@ -1,6 +1,6 @@
 class WebHandler < Kafkr::Consumer::Handler
   def handle?(message)
-    can_handle? message, 'web'
+    can_handle? message, "web"
   end
 
   def handle(message)

@@ -3,8 +3,8 @@ require "socket"
 require "fileutils"
 require "securerandom"
 require "ostruct"
-require 'json'
-require 'fiber'
+require "json"
+require "fiber"
 module Kafkr
   module Producer
     @@file_mutex = Mutex.new
@@ -31,54 +31,50 @@ module Kafkr
       logger.error("Configuration error: #{e.message}")
     end
 
-    def self.structured_data_to_hash(input:, sync_uid: )
+    def self.structured_data_to_hash(input:, sync_uid:)
       # Check the overall structure with regex and make quotes optional
-      unless input.match(/\A\w+\s*(=>|<=>)\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/)
+      unless /\A\w+\s*(=>|<=>)\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/.match?(input)
         return input
       end
 
-
-      if(input.include?("<=>"))
-        #puts "sync message"
+      if input.include?("<=>")
+        # puts "sync message"
         # Extract the type and key-value pairs
-        type, key_values_str = input.split('<=>').map(&:strip)
+        type, key_values_str = input.split("<=>").map(&:strip)
 
-        #puts type
-        #puts key_values_str
-
+        # puts type
+        # puts key_values_str
 
         key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
 
         # Convert the array of pairs into a hash, stripping quotes if they exist
         hash_body = key_values.to_h do |key, value|
-          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
+          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, "")]
         end
 
         # Return the final hash with the type as the key
-        { type.to_sym => hash_body, sync: true, sync_uid: sync_uid }
+        {type.to_sym => hash_body, :sync => true, :sync_uid => sync_uid}
 
       else
-        #puts "async message"
+        # puts "async message"
         # Extract the type and key-value pairs
-        type, key_values_str = input.split('=>').map(&:strip)
+        type, key_values_str = input.split("=>").map(&:strip)
         key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
 
         # Convert the array of pairs into a hash, stripping quotes if they exist
         hash_body = key_values.to_h do |key, value|
-          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, '')]
+          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, "")]
         end
 
         # Return the final hash with the type as the key
-        { type.to_sym => hash_body }
+        {type.to_sym => hash_body}
       end
-
     end
-
 
     def self.send_message(message)
       uuid = SecureRandom.uuid
 
-      message =  structured_data_to_hash(input: message,sync_uid: uuid)
+      message = structured_data_to_hash(input: message, sync_uid: uuid)
 
       if message.is_a? String
         message_with_uuid = "#{uuid}: #{message}"
@@ -114,35 +110,12 @@ module Kafkr
       uuid
     end
 
-
     def self.send_message_and_wait(message)
-      consumer_ready = false
-      consumer_fiber = Fiber.new do
-        # Start the consumer
-        puts "Starting consumer..."
-        Kafkr::Consumer.new.listen do |msg|
-          consumer_ready = true  # Set flag when consumer starts listening
-          puts "Consumer is ready and listening..."
-          # Processing of the message
-          # Implement your message processing logic here
-        end
+      # Using method(:send_message) to pass the send_message method as a callable object
+      listen_for(message_to_send, method(:send_message)) do |received_message|
+        puts "Received message: #{received_message}"
       end
-
-      sender_fiber = Fiber.new do
-        # Wait until the consumer is ready before sending the message
-        puts "Waiting for consumer to be ready..."
-        sleep 0.1 until consumer_ready
-        puts "Sending message..."
-        send_message(message)  # Send the message
-      end
-
-      # Start the consumer fiber
-      consumer_fiber.resume
-
-      # Start the sender fiber
-      sender_fiber.resume
     end
-
 
     private
 
