@@ -7,5 +7,7 @@
 /spec/reports/
 /tmp/
 ./.kafkr/
+.kafkr/acknowledged_message_ids.txt
+.kafkr/acknowledged_messages.txt
 # rspec failure tracking
 .rspec_status
