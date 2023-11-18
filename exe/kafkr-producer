@@ -17,7 +17,7 @@ begin
     break if line == "exit"
 
     if line.include? "<=>"
-      Kafkr::Producer.send_message_and_wait(line)
+      puts Kafkr::Producer.send_message_and_wait(line)
     else
       Kafkr::Producer.send_message(line)
     end
