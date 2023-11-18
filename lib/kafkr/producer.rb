@@ -88,14 +88,16 @@ module Kafkr
       encrypted_message_with_uuid = Kafkr::Encryptor.new.encrypt(message_with_uuid)
 
       begin
-        if !@configuration.acknowledged_messages.include?(uuid)
-          socket = TCPSocket.new(@configuration.host, @configuration.port)
-          listen_for_acknowledgments(socket) if acknowledge
-          send_queued_messages(socket)
-          # Send the encrypted message instead of the plain one
-          socket.puts(encrypted_message_with_uuid)
-        else
-          puts "Message with UUID #{uuid} has already been acknowledged. Skipping."
+        if acknowledge
+          if !@configuration.acknowledged_messages.include?(uuid)
+            socket = TCPSocket.new(@configuration.host, @configuration.port)
+            listen_for_acknowledgments(socket) if acknowledge
+            send_queued_messages(socket)
+            # Send the encrypted message instead of the plain one
+            socket.puts(encrypted_message_with_uuid)
+          else
+            puts "Message with UUID #{uuid} has already been acknowledged. Skipping."
+          end
         end
       rescue Errno::ECONNREFUSED
         puts "Connection refused. Queuing message: #{encrypted_message_with_uuid}"
