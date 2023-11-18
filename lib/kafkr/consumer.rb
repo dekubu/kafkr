@@ -159,7 +159,7 @@ module Kafkr
 
         Timeout.timeout(20) do
           # Call the provided send_message method or lambda, passing the message as an argument
-          send_message.call(message)
+          send_message.call(message,acknowledge: false)
 
           loop do
             received_message = socket.gets

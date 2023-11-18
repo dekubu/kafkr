@@ -71,7 +71,7 @@ module Kafkr
       end
     end
 
-    def self.send_message(message)
+    def self.send_message(message, acknowledge: true)
       uuid = SecureRandom.uuid
 
       message = structured_data_to_hash(input: message, sync_uid: uuid)
@@ -90,7 +90,7 @@ module Kafkr
       begin
         if !@configuration.acknowledged_messages.include?(uuid)
           socket = TCPSocket.new(@configuration.host, @configuration.port)
-          listen_for_acknowledgments(socket)
+          listen_for_acknowledgments(socket) if acknowledge
           send_queued_messages(socket)
           # Send the encrypted message instead of the plain one
           socket.puts(encrypted_message_with_uuid)
