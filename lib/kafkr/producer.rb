@@ -127,6 +127,8 @@ module Kafkr
             puts received_message
           end
         end
+        
+      end
     end
 
     private
