@@ -75,7 +75,10 @@ module Kafkr
 
       def reply to:, payload:
         
-        Kafkr::Producer.configure
+        Kafkr::Producer.configure do 
+
+        end
+        
         Kafkr::Producer.send_message({reply: {payload: payload, sync_uid: to['sync_uid']}},acknowledge: false)
       end
 
