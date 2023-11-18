@@ -114,66 +114,32 @@ module Kafkr
       uuid
     end
 
-    def self.send_message_and_wait(message)
-      # Shared state for signaling readiness and message reception
-      state = {
-        consumer_ready: false,
-        message_received: false,
-        payload: nil
-      }
 
-      # Consumer fiber
+    require 'fiber'
+
+    def send_message_and_wait(message)
+      consumer_ready = false
       consumer_fiber = Fiber.new do
-        start_time = Time.now
-        loop do
-          # Simulate listening for a message
-          # Replace this with actual message listening logic
-          if message_arrives?
-            state[:message_received] = true
-            state[:payload] = get_message_payload
-            break
-          end
-
-          # Timeout check
-          if Time.now - start_time > 20
-            puts "Timeout: No message received in 20 seconds"
-            break
-          end
-
-          # Yield control to allow sender fiber to run
-          Fiber.yield
+        # Start the consumer
+        Kafkr::Consumer.new.listen do |msg|
+          consumer_ready = true  # Set flag when consumer starts listening
+          # Processing of the message
+          # Implement your message processing logic here
         end
       end
 
-      # Sender fiber
       sender_fiber = Fiber.new do
-        loop do
-          if state[:consumer_ready]
-            send_message(message) # Implement this method as needed
-            break
-          end
-          Fiber.yield
-        end
+        # Wait until the consumer is ready before sending the message
+        sleep 0.1 until consumer_ready
+        send_message(message)  # Send the message
       end
 
-      # Start consumer fiber
+      # Start the consumer fiber
       consumer_fiber.resume
 
-      # Indicate consumer is ready
-      state[:consumer_ready] = true
-
-      # Start sender fiber
+      # Start the sender fiber
       sender_fiber.resume
-
-      # Resume fibers until message is received or timeout occurs
-      until state[:message_received]
-        consumer_fiber.resume
-        sender_fiber.resume
-      end
-
-      state[:payload] # Return the received payload
     end
-
     private
 
     def self.listen_for_acknowledgments(socket)
