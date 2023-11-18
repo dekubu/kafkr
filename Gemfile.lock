@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kafkr (0.4.12)
+    kafkr (0.4.13)
       gibberish (~> 2.1)
 
 GEM

@@ -5,7 +5,6 @@ require "securerandom"
 require "ostruct"
 require "json"
 require "fiber"
-require "debug"
 module Kafkr
   module Producer
     @@file_mutex = Mutex.new
