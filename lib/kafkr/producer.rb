@@ -75,9 +75,8 @@ module Kafkr
     def self.send_message(message, acknowledge: true)
       uuid = SecureRandom.uuid
 
-      message = structured_data_to_hash(input: message, sync_uid: uuid)
-
       if message.is_a? String
+        message = structured_data_to_hash(input: message, sync_uid: uuid)
         message_with_uuid = "#{uuid}: #{message}"
       end
 
