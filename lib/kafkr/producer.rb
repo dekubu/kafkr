@@ -119,7 +119,16 @@ module Kafkr
     def self.send_message_and_wait(message)
       # Using method(:send_message) to pass the send_message method as a callable object
       Consumer.new.listen_for(message, self.method(:send_message)) do |received_message|
-        ok = message["sync_uid"] == received_message["sync_uid"]
+        
+        puts "message sync_uid"
+        puts message["sync_uid"]
+        puts "recieved sync_uid"
+        puts received_message["sync_uid"]
+        puts "reply"
+        puts received_message.key? "reply"
+
+        ok = message["sync_uid"] == received_message["sync_uid"] && received_message.key?("reply")
+
         puts "Received message: #{received_message} is reply for message #{ok ? "OK" : "KO"}"
       end
     end
