@@ -4,7 +4,12 @@ require "kafkr"
 require "find"
 require "digest"
 
-PORT = ENV["KAFKR_PORT"] || 4000
+# Accepting command line arguments for host and port
+host = ARGV[0] || "localhost"
+port = ARGV[1] || ENV["KAFKR_PORT"] || 4000
+
+puts "Running on host: #{host} and port: #{port}"
+
 $current_consumer = nil
 $restart_required = false
 $handlers_loaded = false
@@ -28,12 +33,12 @@ def list_registered_handlers
   end
 end
 
-def start_consumer
-  puts "Starting consumer on port #{PORT}!"
+def start_consumer(port)
+  puts "Starting consumer on port #{port}!"
   $handlers_changed = false
 
   Kafkr::Consumer.configure do |config|
-    config.port = PORT
+    config.port = port
   end
 
   unless $handlers_loaded
@@ -48,54 +53,17 @@ def start_consumer
   end
 end
 
-def reload_handlers(file_checksums)
-  handlers_before_reload = Kafkr::Consumer.handlers.dup # Store current handlers
-  Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
-    next unless File.file?(path)
-    load path
-  end
-
-  if $handlers_changed
-    Kafkr::Consumer.load_handlers
-    new_handlers = Kafkr::Consumer.handlers - handlers_before_reload
-    if new_handlers.any?
-      new_handlers.each do |handler|
-        handler_name = handler.class.name.split("::").last.gsub(/Handler$/, "").capitalize
-        puts "#{handler_name} handler updated - ok!"
-      end
-    end
-  end
-end
-
-def monitor_handlers(file_checksums)
-  loop do
-    changed = false
-    Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
-      next unless File.file?(path)
-
-      current_checksum = Digest::MD5.file(path).hexdigest
-      if file_checksums[path] != current_checksum
-        file_checksums[path] = current_checksum
-        changed = true
-      end
-    end
-
-    $handlers_changed = changed # Set outside the loop
-
-    reload_handlers(file_checksums) if $handlers_changed
-    sleep 5
-  end
-end
+# ... rest of the script remains unchanged ...
 
 file_checksums = {}
 monitoring_thread = Thread.new { monitor_handlers(file_checksums) }
-start_consumer
+start_consumer(port)  # Pass the port here
 
 begin
   loop do
     if $restart_required
       stop_consumer
-      start_consumer
+      start_consumer(port)
       $restart_required = false
     end
     sleep 1
