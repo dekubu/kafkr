@@ -75,8 +75,9 @@ module Kafkr
 
       def reply to:, payload:
         
-        Kafkr::Producer.configure do 
-
+        Kafkr::Producer.configure do |config|
+          config.host = Consumer.configuration.host
+          config.port = Consumer.configuration.port
         end
 
         Kafkr::Producer.send_message({reply: {payload: payload, uuid: to['sync_uid']}},acknowledge: false)
@@ -164,8 +165,8 @@ module Kafkr
     def listen_for(message, send_message)
       attempt = 0
       begin
-        socket = TCPSocket.new(@host, @port)
-        puts "Connected to server." if attempt == 0
+        socket = TCPSocket.new( Consumer.configuration.host,  Consumer.configuration.port)
+        puts "Connected to server. #{Consumer.configuration.host} #{Consumer.configuration.port} " if attempt == 0
         attempt = 0
 
         Timeout.timeout(20) do
@@ -207,8 +208,8 @@ module Kafkr
     def listen
       attempt = 0
       loop do
-        socket = TCPSocket.new(@host, @port)
-        puts "Connected to server. #{@host} #{@port} " if attempt == 0
+        socket = TCPSocket.new(Consumer.configuration.host,  Consumer.configuration.post)
+        puts "Connected to server. #{Consumer.configuration.host} #{Consumer.configuration.port} " if attempt == 0
         attempt = 0
 
         loop do
