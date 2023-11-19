@@ -208,7 +208,7 @@ module Kafkr
     def listen
       attempt = 0
       loop do
-        socket = TCPSocket.new(Consumer.configuration.host,  Consumer.configuration.post)
+        socket = TCPSocket.new(Consumer.configuration.host,  Consumer.configuration.port)
         puts "Connected to server. #{Consumer.configuration.host} #{Consumer.configuration.port} " if attempt == 0
         attempt = 0
 
