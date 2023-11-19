@@ -6,7 +6,7 @@ require "digest"
 
 # Accepting command line arguments for host and port
 host = ARGV[0] || "localhost"
-port = ARGV[1] || ENV["KAFKR_PORT"] || 4000
+port = ARGV[1] || 4000
 
 puts "Running on host: #{host} and port: #{port}"
 

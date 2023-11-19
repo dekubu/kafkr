@@ -15,8 +15,6 @@ module Kafkr
     def self.configuration
       FileUtils.mkdir_p "./.kafkr"
       @configuration ||= OpenStruct.new
-      @configuration.host = ENV.fetch("KAFKR_HOST", "localhost")
-      @configuration.port = ENV.fetch("KAFKR_PORT", "4000").to_i
       @configuration.queue_file = MESSAGE_QUEUE
       @configuration.acknowledged_file = ACKNOWLEDGED_MESSAGE_QUEUE
       @configuration.message_queue = []

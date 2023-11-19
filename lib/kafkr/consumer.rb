@@ -18,8 +18,6 @@ module Kafkr
       def configuration
         FileUtils.mkdir_p "./.kafkr"
         @configuration ||= OpenStruct.new
-        @configuration.host = ENV.fetch("KAFKR_HOST", "localhost")
-        @configuration.port = ENV.fetch("KAFKR_PORT", "4000").to_i
         @configuration
       end
 
