@@ -208,7 +208,7 @@ module Kafkr
       attempt = 0
       loop do
         socket = TCPSocket.new(@host, @port)
-        puts "Connected to server." if attempt == 0
+        puts "Connected to server. #{@host} #{@port} " if attempt == 0
         attempt = 0
 
         loop do
