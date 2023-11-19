@@ -39,6 +39,7 @@ def start_consumer(port)
 
   Kafkr::Consumer.configure do |config|
     config.port = port
+    config.host = host
   end
 
   unless $handlers_loaded
