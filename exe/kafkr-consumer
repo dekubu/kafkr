@@ -53,7 +53,44 @@ def start_consumer(port)
   end
 end
 
-# ... rest of the script remains unchanged ...
+def reload_handlers(file_checksums)
+  handlers_before_reload = Kafkr::Consumer.handlers.dup # Store current handlers
+  Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
+    next unless File.file?(path)
+    load path
+  end
+
+  if $handlers_changed
+    Kafkr::Consumer.load_handlers
+    new_handlers = Kafkr::Consumer.handlers - handlers_before_reload
+    if new_handlers.any?
+      new_handlers.each do |handler|
+        handler_name = handler.class.name.split("::").last.gsub(/Handler$/, "").capitalize
+        puts "#{handler_name} handler updated - ok!"
+      end
+    end
+  end
+end
+
+def monitor_handlers(file_checksums)
+  loop do
+    changed = false
+    Find.find(Kafkr::Consumer::HANDLERS_DIRECTORY) do |path|
+      next unless File.file?(path)
+
+      current_checksum = Digest::MD5.file(path).hexdigest
+      if file_checksums[path] != current_checksum
+        file_checksums[path] = current_checksum
+        changed = true
+      end
+    end
+
+    $handlers_changed = changed # Set outside the loop
+
+    reload_handlers(file_checksums) if $handlers_changed
+    sleep 5
+  end
+end
 
 file_checksums = {}
 monitoring_thread = Thread.new { monitor_handlers(file_checksums) }
