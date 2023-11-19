@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
-PORT = ENV["KAFKR_PORT"] || 4000
+require 'readline'
+
+# Parsing command line arguments for host and port
+host = ARGV[0] || "localhost"
+port = ARGV[1] || 4000
+
+puts "Running on host: #{host} and port: #{port}"
 
 begin
   require "kafkr"
@@ -10,7 +16,8 @@ end
 
 begin
   Kafkr::Producer.configure do |config|
-    config.host = "localhost"
+    config.host = host
+    config.port = port
   end
 
   while line = Readline.readline("> ", true)
@@ -21,7 +28,6 @@ begin
     else
       Kafkr::Producer.send_message(line)
     end
-
   end
 rescue => e
   puts "An error occurred: #{e.message}"
