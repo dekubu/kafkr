@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Delaney Kuldvee Burke"]
   spec.email = ["delaney@zero2one.ee"]
 
-  spec.summary = "kafkr implmentation in ruby"
-  spec.description = "kafkr implmentation in ruby"
+  spec.summary = "A homage to kafkr implmented in ruby"
+  spec.description = "A homage to kafkr implmented in ruby"
   spec.homepage = "https://zero2one.ee/gems/kafkr"
   spec.required_ruby_version = ">= 2.6.0"
 
