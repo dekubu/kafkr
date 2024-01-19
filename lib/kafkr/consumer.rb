@@ -163,8 +163,7 @@ module Kafkr
     def listen_for(message, send_message)
       attempt = 0
       begin
-        socket = TCPSocket.new( Consumer.configuration.host,  Consumer.configuration.port)
-        puts "Connected to server. #{Consumer.configuration.host} #{Consumer.configuration.port} " if attempt == 0
+        socket = TCPSocket.new( Consumer.configuration.host,  Consumer.configuration.port)        
         attempt = 0
 
         Timeout.timeout(20) do
@@ -207,7 +206,6 @@ module Kafkr
       attempt = 0
       loop do
         socket = TCPSocket.new(Consumer.configuration.host,  Consumer.configuration.port)
-        puts "Connected to server. #{Consumer.configuration.host} #{Consumer.configuration.port} " if attempt == 0
         attempt = 0
 
         loop do
