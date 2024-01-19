@@ -18,6 +18,7 @@ module Kafkr
       @configuration.queue_file = MESSAGE_QUEUE
       @configuration.acknowledged_file = ACKNOWLEDGED_MESSAGE_QUEUE
       @configuration.message_queue = []
+      @configuration.acknowledged_messages = []
       @configuration.acknowledged_messages = load_acknowledged_messages
       load_queue_from_file
       @configuration
