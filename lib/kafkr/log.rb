@@ -91,8 +91,19 @@ module Kafkr
     private
 
     def extract_uuid(message)
-      match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
-      match_data ? [match_data[1], match_data[2]] : [nil, nil]
+
+      #check if message if valid json
+      begin
+        message = JSON.parse(message)
+        
+        return message["uuid"], message
+
+      rescue JSON::ParserError => e
+        puts "Received invalid message format: #{message}"
+        match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
+        match_data ? [match_data[1], match_data[2]] : [nil, nil]
+      end
+      
     end
 
     def acknowledge_message(uuid, client)

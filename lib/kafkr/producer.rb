@@ -21,6 +21,7 @@ module Kafkr
       @configuration.acknowledged_messages = []
       @configuration.acknowledged_messages = load_acknowledged_messages
       load_queue_from_file
+      @configuration.is_json = false
       @configuration
     end
 
@@ -72,14 +73,23 @@ module Kafkr
 
     def self.send_message(message, acknowledge: true)
       uuid = SecureRandom.uuid
+    
+      message_with_uuid = nil
 
-      if message.is_a? String
-        message = structured_data_to_hash(input: message, sync_uid: uuid)
-        message_with_uuid = "#{uuid}: #{message}"
-      end
+      if Kafkr.configuration.is_json
+        json_message = JSON.parse(message)
+        json_message["uuid"] = uuid
+        message = JSON.dump(json_message)
+        message_with_uuid = message
+      else
+        if message.is_a? String
+          message = structured_data_to_hash(input: message, sync_uid: uuid)
+          message_with_uuid = "#{uuid}: #{message}"
+        end
 
-      if message.is_a?(Hash)
-        message_with_uuid = "#{uuid}: #{JSON.generate(message)}"
+        if message.is_a?(Hash)
+          message_with_uuid = "#{uuid}: #{JSON.generate(message)}"
+        end
       end
 
       # Encrypt the message here
