@@ -79,8 +79,8 @@ module Kafkr
       if Kafkr::Producer.configuration.is_json
         json_message = JSON.parse(message)
         json_message["uuid"] = uuid
-        message_with_uuid= JSON.dump(json_message)
-      else§
+        message_with_uuid = JSON.dump(json_message)
+      else
         if message.is_a? String
           message = structured_data_to_hash(input: message, sync_uid: uuid)
           message_with_uuid = "#{uuid}: #{message}"
