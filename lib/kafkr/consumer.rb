@@ -18,6 +18,7 @@ module Kafkr
       def configuration
         FileUtils.mkdir_p "./.kafkr"
         @configuration ||= OpenStruct.new
+        @configuration.suggest_handlers = false
         @configuration
       end
 
@@ -72,13 +73,12 @@ module Kafkr
       protected
 
       def reply to:, payload:
-        
         Kafkr::Producer.configure do |config|
           config.host = Consumer.configuration.host
           config.port = Consumer.configuration.port
         end
 
-        Kafkr::Producer.send_message({reply: {payload: payload, uuid: to['sync_uid']}},acknowledge: false)
+        Kafkr::Producer.send_message({reply: {payload: payload, uuid: to["sync_uid"]}}, acknowledge: false)
       end
 
       private
@@ -134,27 +134,29 @@ module Kafkr
         return
       end
 
-      if valid_class_name? name.capitalize
-        puts "No handler for this message, you could use this one."
-        puts ""
+      if Kafkr::Consumer.configuration.suggest_handlers
+        if valid_class_name? name.capitalize
+          puts "No handler for this message, you could use this one."
+          puts ""
 
-        handler_class_string = <<~HANDLER_CLASS
+          handler_class_string = <<~HANDLER_CLASS
 
-          class #{name.capitalize}Handler < Kafkr::Consumer::Handler
-            def handle?(message)
-              can_handle? message, '#{name}'
-            end
+            class #{name.capitalize}Handler < Kafkr::Consumer::Handler
+              def handle?(message)
+                can_handle? message, '#{name}'
+              end
       
-            def handle(message)
-              puts message
+              def handle(message)
+                puts message
+              end
             end
-          end
 
-          save the file to ./handlers/#{name}_handler.rb
+            save the file to ./handlers/#{name}_handler.rb
 
-        HANDLER_CLASS
+          HANDLER_CLASS
 
-        puts handler_class_string
+          puts handler_class_string
+        end
       end
     end
 
@@ -163,7 +165,7 @@ module Kafkr
     def listen_for(message, send_message)
       attempt = 0
       begin
-        socket = TCPSocket.new( Consumer.configuration.host,  Consumer.configuration.port)        
+        socket = TCPSocket.new(Consumer.configuration.host, Consumer.configuration.port)
         attempt = 0
 
         Timeout.timeout(20) do
@@ -174,11 +176,11 @@ module Kafkr
             received_message = socket.gets
             raise LostConnection if received_message.nil?
             # Assuming Kafkr::Encryptor is defined elsewhere
-            received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)            
+            received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)
             # Yield every received message to the given block
             if valid_json?(received_message)
-               payload =yield JSON.parse(received_message),sync_uid if block_given?
-               return payload if payload
+              payload = yield JSON.parse(received_message), sync_uid if block_given?
+              return payload if payload
             end
           end
         end
@@ -205,7 +207,7 @@ module Kafkr
     def listen
       attempt = 0
       loop do
-        socket = TCPSocket.new(Consumer.configuration.host,  Consumer.configuration.port)
+        socket = TCPSocket.new(Consumer.configuration.host, Consumer.configuration.port)
         attempt = 0
 
         loop do

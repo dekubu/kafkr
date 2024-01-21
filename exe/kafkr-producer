@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'readline'
+require "readline"
 
 # Parsing command line arguments for host and port
 host = ARGV[0] || "localhost"

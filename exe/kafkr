@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+require_relative "../lib/kafkr.rb"
+
 PORT = ENV["KAFKR_PORT"] || 4000
 
 begin
@@ -10,7 +12,7 @@ end
 
 begin
   server = Kafkr::Log.new(PORT.to_i)
-  puts "Log started on port #{PORT}!"
+  puts "Kafkr Log version #{Kafkr::VERSION} started on port #{PORT}!"
   server.start
 rescue => e
   puts "An error occurred: #{e.message}"

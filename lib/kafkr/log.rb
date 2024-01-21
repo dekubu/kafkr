@@ -74,7 +74,7 @@ module Kafkr
     end
 
     def load_whitelist
-      whitelist = ["localhost", "::1","127.0.0.1"]
+      whitelist = ["localhost", "::1", "127.0.0.1"]
       if File.exist?("whitelist.txt")
         File.readlines("whitelist.txt").each do |line|
           ip = line.strip.sub(/^::ffff:/, "")

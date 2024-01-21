@@ -11,6 +11,7 @@ require_relative "kafkr/message_broker"
 require_relative "kafkr/log"
 require_relative "kafkr/consumer"
 require_relative "kafkr/producer"
+require_relative "kafkr/version"
 
 module Kafkr
   class << self

@@ -33,7 +33,7 @@ def list_registered_handlers
   end
 end
 
-def start_consumer(port,host)
+def start_consumer(port, host)
   puts "Starting consumer on port #{port}!"
   $handlers_changed = false
 
@@ -95,13 +95,13 @@ end
 
 file_checksums = {}
 monitoring_thread = Thread.new { monitor_handlers(file_checksums) }
-start_consumer(port,host)  # Pass the port here
+start_consumer(port, host)  # Pass the port here
 
 begin
   loop do
     if $restart_required
       stop_consumer
-      start_consumer(port,host)
+      start_consumer(port, host)
       $restart_required = false
     end
     sleep 1
