@@ -59,6 +59,7 @@ module Kafkr
                   acknowledge_message(uuid, client)
                   persist_received_message(uuid)
                   @acknowledged_message_ids << uuid
+                  message_content["uuid"] = uuid
                   @broker.broadcast(message_content)
                 end
               else
