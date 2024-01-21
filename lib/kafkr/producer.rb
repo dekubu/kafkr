@@ -76,7 +76,7 @@ module Kafkr
     
       message_with_uuid = nil
 
-      if Kafkr.configuration.is_json
+      if Kafkr::Producer.configuration.is_json
         json_message = JSON.parse(message)
         json_message["uuid"] = uuid
         message = JSON.dump(json_message)
