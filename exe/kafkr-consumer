@@ -34,8 +34,8 @@ def list_registered_handlers
   end
 end
 
-def start_consumer(port, host)
-  puts "Starting consumer on port #{port}!"
+def start_consumer(port, host, timeout)
+  puts "Starting consumer on port #{port}! timeout: #{timeout}"
   $handlers_changed = false
 
   Kafkr::Consumer.configure do |config|
@@ -103,7 +103,7 @@ begin
   loop do
     if $restart_required
       stop_consumer
-      start_consumer(port, host)
+      start_consumer(port, host,timeout)
       $restart_required = false
     end
     sleep 1
