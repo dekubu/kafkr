@@ -97,7 +97,7 @@ end
 
 file_checksums = {}
 monitoring_thread = Thread.new { monitor_handlers(file_checksums) }
-start_consumer(port, host)  # Pass the port here
+start_consumer(port, host,timeout)  # Pass the port here
 
 begin
   loop do
