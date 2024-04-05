@@ -6,7 +6,7 @@ module Kafkr
     ALGORITHM = "aes-256-cbc"
 
     def initialize
-      @key = Base64.decode64("2wZ85yxQe0lmiQ5nsqdmPWoGB0W6HZW8S/UXVTLQ6WY=")
+      @key = Base64.decode64(ENV["KAFKR_ENCRYPTION_KEY"])
     end
 
     def encrypt(data)
