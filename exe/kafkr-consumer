@@ -7,6 +7,7 @@ require "digest"
 # Accepting command line arguments for host and port
 host = ARGV[0] || "localhost"
 port = ARGV[1] || 4000
+timeout = ARGV[2] || 120
 
 puts "Running on host: #{host} and port: #{port}"
 
@@ -40,6 +41,7 @@ def start_consumer(port, host)
   Kafkr::Consumer.configure do |config|
     config.port = port
     config.host = host
+    config.timeout = timeout 
   end
 
   unless $handlers_loaded

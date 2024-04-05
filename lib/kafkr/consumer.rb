@@ -18,6 +18,9 @@ module Kafkr
       def configuration
         FileUtils.mkdir_p "./.kafkr"
         @configuration ||= OpenStruct.new
+        @configuration.host = ENV.fetch("KAFKR_HOST", "localhost")
+        @configuration.port = ENV.fetch("KAFKR_PORT", 2000)
+        @configuration.timeout = ENV.fetch("KAFKR_CONSUMER_TIMEOUT", 120) 
         @configuration.suggest_handlers = false
         @configuration
       end
@@ -150,7 +153,7 @@ module Kafkr
         socket = TCPSocket.new(@host, @port)
         attempt = 0
 
-        Timeout.timeout(20) do
+        Timeout.timeout(Kafkr::Consumer.configuration.timeout) do
           sync_uid = send_message.call(message)
 
           loop do
