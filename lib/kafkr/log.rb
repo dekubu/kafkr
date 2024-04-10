@@ -36,7 +36,9 @@ module Kafkr
 
         Thread.new do
           loop do
+
             encrypted_message = client.gets
+            
             if encrypted_message.nil?
               @broker.last_sent.delete(client)
               client.close
@@ -46,17 +48,14 @@ module Kafkr
             else
               decryptor = Kafkr::Encryptor.new
               message = decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
-              uuid, message_content = extract_uuid(message)
-              if uuid && message_content
-                @broker.broadcast(message_content)
-              else
-                puts "Received invalid message format: #{message}"
-              end
+              @broker.broadcast(message)
             end
+          
           rescue Errno::ECONNRESET
             puts "Connection reset by client. Closing connection..."
             client.close
           end
+
         end
       end
     end
