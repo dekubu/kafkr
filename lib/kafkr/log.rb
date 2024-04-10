@@ -45,7 +45,6 @@ module Kafkr
                 @broker.last_sent.delete(client)
                 client.close
                 @broker.subscribers.delete(client)
-                puts "Client connection closed. Removed from subscribers list."
                 break
               else
                 decryptor = Kafkr::Encryptor.new
@@ -54,7 +53,6 @@ module Kafkr
                 @broker.broadcast(message_content)
               end
             rescue Errno::ECONNRESET
-              puts "Connection reset by client. Closing connection..."
               client.close
             end 
           rescue StandardError => exception
