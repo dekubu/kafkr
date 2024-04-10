@@ -7,7 +7,7 @@ require "digest"
 # Accepting command line arguments for host and port
 host = ARGV[0] || "localhost"
 port = ARGV[1] || 4000
-timeout = ARGV[2] || 120
+timeout = ARGV[2] || 300
 
 puts "Running on host: #{host} and port: #{port}"
 
