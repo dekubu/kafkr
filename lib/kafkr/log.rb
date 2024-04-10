@@ -48,6 +48,7 @@ module Kafkr
             else
               decryptor = Kafkr::Encryptor.new
               message = decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
+              Kafkr.log message
               @broker.broadcast(message)
             end
           
