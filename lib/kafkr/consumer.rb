@@ -180,7 +180,7 @@ module Kafkr
       attempt = 0
       loop do
         listen_for("dummy", ->(msg) {  }) do |message|
-          Kafkr.log "<< #{message}"
+          Kafkr.log ">> #{message}"
           dispatch_to_handlers(message)
         end
       end
