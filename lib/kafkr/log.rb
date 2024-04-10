@@ -58,6 +58,7 @@ module Kafkr
             end
 
           end
+        end 
         rescue
           put "restarting log"
         end
