@@ -19,8 +19,8 @@ module Kafkr
         FileUtils.mkdir_p "./.kafkr"
         @configuration ||= OpenStruct.new
         @configuration.host = ENV.fetch("KAFKR_HOST", "localhost")
-        @configuration.port = ENV.fetch("KAFKR_PORT", 2000)
-        @configuration.timeout = ENV.fetch("KAFKR_CONSUMER_TIMEOUT", 120) 
+        @configuration.port = ENV.fetch("KAFKR_PORT", 4000)
+        @configuration.timeout = ENV.fetch("KAFKR_CONSUMER_TIMEOUT", 300) 
         @configuration.suggest_handlers = false
         @configuration
       end
