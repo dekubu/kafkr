@@ -1,6 +1,4 @@
-require "socket"
-require "timeout"
-require "ostruct"
+require "socket" require "timeout" require "ostruct"
 require "fileutils"
 require "json"
 
@@ -180,8 +178,8 @@ module Kafkr
     def listen
       attempt = 0
       loop do
-        listen_for("dummy", ->(msg) { puts "Listening..." }) do |message|
-          puts "Received message: #{message}"
+        listen_for("dummy", ->(msg) { }) do |message|
+          puts "<< #{message}"
         end
       end
     end
