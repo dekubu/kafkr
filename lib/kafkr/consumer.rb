@@ -167,7 +167,6 @@ module Kafkr
       rescue Timeout::Error, LostConnection, Errno::ECONNREFUSED
         attempt += 1
         wait_time = backoff_time(attempt)
-        puts "Attempt #{attempt}: Retrying in #{wait_time} seconds..."
         sleep(wait_time)
         retry
       rescue Interrupt
