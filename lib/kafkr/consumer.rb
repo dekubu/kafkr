@@ -178,7 +178,7 @@ module Kafkr
     def listen
       attempt = 0
       loop do
-        listen_for("dummy", ->(msg) { }) do |message|
+        listen_for("dummy", ->(msg) {  }) do |message|
           puts "<< #{message}"
         end
       end
