@@ -50,6 +50,8 @@ module Kafkr
     end
 
     def self.send_message(message)
+      return if message.nil || message.empty?
+
       uuid = SecureRandom.uuid
       message_with_uuid = nil
 
