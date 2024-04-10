@@ -75,16 +75,7 @@ module Kafkr
 
     def write(message, unique_id = nil)
       begin
-        unique_id ||= SecureRandom.uuid
-      rescue => e
-        unique_id = "unknown"
-        @logger.error("Failed to generate UUID: #{e.message}")
-      end
-
-      formatted_message = "[#{unique_id}] #{message}"
-
-      begin
-        logger.info(formatted_message)
+        logger.info(message)
       rescue IOError => e
         @logger.error("Failed to write log: #{e.message}")
       end
