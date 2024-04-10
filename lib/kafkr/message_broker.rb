@@ -14,6 +14,9 @@ module Kafkr
 
     def broadcast(message)
       encrypted_message = Kafkr::Encryptor.new.encrypt(message)
+      
+      Kafkr.log encrypted_message
+
       @subscribers.each do |subscriber|
         if !subscriber.closed?
           subscriber.puts(encrypted_message)
