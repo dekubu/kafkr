@@ -27,7 +27,7 @@ module Kafkr
         client_ip = client.peeraddr[3]
 
         unless whitelisted?(client_ip)
-          puts "Connection from non-whitelisted IP: #{client_ip}. Ignored."
+          Kafkr.log "Connection from non-whitelisted IP: #{client_ip}. Ignored."
           client.close
           next
         end

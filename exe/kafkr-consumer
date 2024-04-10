@@ -9,7 +9,7 @@ host = ARGV[0] || "localhost"
 port = ARGV[1] || 4000
 timeout = ARGV[2] || 300
 
-puts "Running on host: #{host} and port: #{port}"
+Kafkr.log "Running on host: #{host} and port: #{port}"
 
 $current_consumer = nil
 $restart_required = false
@@ -26,16 +26,15 @@ def stop_consumer
 end
 
 def list_registered_handlers
-  puts "Registered Handlers:"
   Kafkr::Consumer.handlers.each do |handler|
     $loaded_handlers = {}
     handler_name = handler.class.name.split("::").last.gsub(/Handler$/, "")
-    puts "#{handler_name} handler registered."
+    Kafkr.log "#{handler_name} handler registered."
   end
 end
 
 def start_consumer(port, host, timeout)
-  puts "Starting consumer on port #{port}! timeout: #{timeout}"
+  Kafkr.log "Starting consumer on port #{port}! timeout: #{timeout}"
   $handlers_changed = false
 
   Kafkr::Consumer.configure do |config|
@@ -69,7 +68,7 @@ def reload_handlers(file_checksums)
     if new_handlers.any?
       new_handlers.each do |handler|
         handler_name = handler.class.name.split("::").last.gsub(/Handler$/, "").capitalize
-        puts "#{handler_name} handler updated - ok!"
+        Kafkr.log "#{handler_name} handler updated - ok!"
       end
     end
   end

@@ -5,4 +5,4 @@ require "base64"
 key = OpenSSL::Random.random_bytes(32)
 encoded_key = Base64.encode64(key).chomp # .chomp to remove newline character from encoded key
 
-puts "keys: #{encoded_key}"
+Kafkr.log "keys: #{encoded_key}"

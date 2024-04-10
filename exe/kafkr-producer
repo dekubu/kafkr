@@ -5,12 +5,12 @@ require "readline"
 host = ARGV[0] || "localhost"
 port = ARGV[1] || 4000
 
-puts "Running on host: #{host} and port: #{port}"
+kakf "Running on host: #{host} and port: #{port}"
 
 begin
   require "kafkr"
 rescue LoadError => e
-  puts "Failed to load Kafkr: #{e.message}"
+  Kafkr.log "Failed to load Kafkr: #{e.message}"
   exit(1)
 end
 
@@ -24,15 +24,15 @@ begin
     break if line == "exit"
 
     if line.include? "<=>"
-      puts Kafkr::Producer.send_message_and_wait(line)
+      Kafkr.log Kafkr::Producer.send_message_and_wait(line)
     else
       Kafkr::Producer.send_message(line)
     end
   end
 rescue => e
-  puts "An error occurred: #{e.message}"
+  Kafkr.log "An error occurred: #{e.message}"
   exit(1)
 rescue Interrupt
-  puts "\nProducer server shutting down gracefully..."
+  Kafkr.log "\nProducer server shutting down gracefully..."
   exit(0)
 end

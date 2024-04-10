@@ -37,8 +37,8 @@ module Kafkr
       $handlers_changed = true
 
       def list_registered_handlers
-        puts "Registered handlers:"
-        $loaded_handlers.keys.each { |handler| puts "- #{handler}" }
+        Kafkr.log "Registered handlers:"
+        $loaded_handlers.keys.each { |handler| Kafkr.log "- #{handler}" }
       end
 
       def load_handlers(directory = "./handlers")
@@ -124,7 +124,7 @@ module Kafkr
 
       if Kafkr::Consumer.configuration.suggest_handlers
         if valid_class_name?(name.capitalize)
-          puts "No handler for this message, you could use this one.\n\n"
+          Kafkr.log "No handler for this message, you could use this one.\n\n"
 
           handler_class_string = <<~HANDLER_CLASS
             class #{name.capitalize}Handler < Kafkr::Consumer::Handler
@@ -133,14 +133,14 @@ module Kafkr
               end
 
               def handle(message)
-                puts message
+                Kafkr.log message
               end
             end
 
             # Save the file to ./handlers/#{name}_handler.rb
           HANDLER_CLASS
 
-          puts handler_class_string
+          Kafkr.log handler_class_string
         end
       end
     end
@@ -170,7 +170,7 @@ module Kafkr
         sleep(wait_time)
         retry
       rescue Interrupt
-        puts "Received interrupt signal. Shutting down consumer gracefully..."
+        Kafkr.log "Received interrupt signal. Shutting down consumer gracefully..."
         socket&.close
         exit(0)
       end

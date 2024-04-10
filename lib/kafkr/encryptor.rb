@@ -19,7 +19,7 @@ module Kafkr
     end
 
     def decrypt(encrypted_data)
-      # puts "Encrypted data before decoding: #{encrypted_data.inspect}"
+      # Kafkr.log "Encrypted data before decoding: #{encrypted_data.inspect}"
       decipher = OpenSSL::Cipher.new(ALGORITHM)
       decipher.decrypt
       decipher.key = @key
@@ -27,7 +27,7 @@ module Kafkr
       decipher.iv = raw_data[0, decipher.iv_len]
       decipher.update(raw_data[decipher.iv_len..-1]) + decipher.final
     rescue OpenSSL::Cipher::CipherError => e
-      puts "Decryption failed: #{e.message}"
+      Kafkr.log "Decryption failed: #{e.message}"
       nil
     end
   end
