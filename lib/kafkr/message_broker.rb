@@ -13,10 +13,7 @@ module Kafkr
     end
 
     def broadcast(message)
-      encrypted_message = Kafkr::Encryptor.new.encrypt(message)
-      
-      Kafkr.log encrypted_message
-
+      encrypted_message = Kafkr::Encryptor.new.encrypt(message) 
       @subscribers.each do |subscriber|
         if !subscriber.closed?
           subscriber.puts(encrypted_message)
@@ -25,8 +22,13 @@ module Kafkr
       rescue Errno::EPIPE
         # Optionally, handle broken pipe error
       rescue IOError
-        @subscribers.delete(subscriber)
-        @last_sent.delete(subscriber)
+        begin
+           @subscribers.delete(subscriber)
+          @last_sent.delete(subscriber)
+        rescue
+          puts "clean up subscribers"
+        end
+
       end
     end
   end
