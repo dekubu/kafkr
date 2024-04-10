@@ -34,48 +34,53 @@ module Kafkr
 
         @broker.add_subscriber(client)
 
-        Thread.new do
-          loop do
+        begin
+          Thread.new do
+            loop do
 
-            encrypted_message = client.gets
-            
-            if encrypted_message.nil?
-              @broker.last_sent.delete(client)
+              encrypted_message = client.gets
+
+              if encrypted_message.nil?
+                @broker.last_sent.delete(client)
+                client.close
+                @broker.subscribers.delete(client)
+                puts "Client connection closed. Removed from subscribers list."
+                break
+              else
+                decryptor = Kafkr::Encryptor.new
+                message = decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
+                @broker.broadcast(message)
+              end
+
+            rescue Errno::ECONNRESET
+              puts "Connection reset by client. Closing connection..."
               client.close
-              @broker.subscribers.delete(client)
-              puts "Client connection closed. Removed from subscribers list."
-              break
-            else
-              decryptor = Kafkr::Encryptor.new
-              message = decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
-              @broker.broadcast(message)
             end
-          
-          rescue Errno::ECONNRESET
-            puts "Connection reset by client. Closing connection..."
-            client.close
-          end
 
+          end
+        rescue
+          put "restarting log"
         end
       end
     end
+  end
 
-    def whitelisted?(ip)
-      @whitelist.include?(ip.gsub("::ffff:", ""))
-    end
+  def whitelisted?(ip)
+    @whitelist.include?(ip.gsub("::ffff:", ""))
+  end
 
-    private
+  private
 
-    def extract_uuid(message)
-      # Check if message is valid JSON
-      begin
-        message = JSON.parse(message)
-        return message["uuid"], message
-      rescue JSON::ParserError => e
-        puts "Received invalid message format: #{message}"
-        match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
-        match_data ? [match_data[1], match_data[2]] : [nil, nil]
-      end
+  def extract_uuid(message)
+    # Check if message is valid JSON
+    begin
+      message = JSON.parse(message)
+      return message["uuid"], message
+    rescue JSON::ParserError => e
+      puts "Received invalid message format: #{message}"
+      match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
+      match_data ? [match_data[1], match_data[2]] : [nil, nil]
     end
   end
+end
 end
