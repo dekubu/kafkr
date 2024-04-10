@@ -72,9 +72,10 @@ module Kafkr
       # Check if message is valid JSON
       begin
         message = JSON.parse(message)
+        Kafkr.log ">> #{message}"
         return message["uuid"], message
       rescue JSON::ParserError => e
-        puts ">> #{message}"
+        Kafkr.log ">> #{message}"
         match_data = /^(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}): (.+)$/.match(message)
         match_data ? [match_data[1], match_data[2]] : [nil, nil]
       end
