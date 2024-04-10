@@ -160,7 +160,8 @@ module Kafkr
             received_message = socket.gets
             raise LostConnection if received_message.nil?
             received_message = Kafkr::Encryptor.new.decrypt(received_message.chomp)
-            received_message
+            payload = yield received_message, sync_uid if block_given?
+            return payload
           end
         end
       rescue Timeout::Error, LostConnection, Errno::ECONNREFUSED
