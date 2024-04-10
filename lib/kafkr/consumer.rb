@@ -181,6 +181,7 @@ module Kafkr
       loop do
         listen_for("dummy", ->(msg) {  }) do |message|
           Kafkr.log "<< #{message}"
+          dispatch_to_handlers(message)
         end
       end
     end
