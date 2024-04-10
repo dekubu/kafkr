@@ -80,10 +80,10 @@ module Kafkr
         unique_id = "unknown"
         @logger.error("Failed to generate UUID: #{e.message}")
       end
+
       formatted_message = "[#{unique_id}] #{message}"
 
       begin
-        puts formatted_message if development?
         logger.info(formatted_message)
       rescue IOError => e
         @logger.error("Failed to write log: #{e.message}")
