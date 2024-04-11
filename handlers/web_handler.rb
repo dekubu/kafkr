@@ -1,6 +1,8 @@
+require "pry"
+
 class WebHandler < Kafkr::Consumer::Handler
   def handle?(message)
-    can_handle? message, "web"
+    message.include?("web")
   end
 
   def handle(message)

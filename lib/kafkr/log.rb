@@ -52,13 +52,13 @@ module Kafkr
                 decryptor = Kafkr::Encryptor.new
                 message = decryptor.decrypt(encrypted_message.chomp) # Decrypt the message here
                 uuid, message_content = extract_uuid(message)
-                @broker.broadcast(message_content)
+                @broker.broadcast(JSON.dump(message_content))
               end
             rescue Errno::ECONNRESET
               client.close
             end 
           rescue StandardError => exception
-            #TODO we need to find the place for a global exception handler
+            Kafkr.log "Error: #{exception.message}"
           end
         end
       end
