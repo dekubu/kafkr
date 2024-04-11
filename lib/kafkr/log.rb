@@ -1,5 +1,7 @@
 require "socket"
 require "rubygems"
+require "kafkr"
+
 
 module Kafkr
   class Log
