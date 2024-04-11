@@ -63,5 +63,4 @@ module Kafkr
   rescue => e
     logger.error("Configuration error: #{e.message}")
   end
- end
 end
