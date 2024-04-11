@@ -75,7 +75,7 @@ module Kafkr
       begin
         socket = TCPSocket.new(@configuration.host, @configuration.port)
         send_queued_messages(socket)
-        socket.puts.log(encrypted_message_with_uuid)
+        socket.puts (encrypted_message_with_uuid)
       rescue Errno::ECONNREFUSED
         Kafkr.log "Connection refused. Queuing message: #{encrypted_message_with_uuid}"
         @configuration.message_queue.push(encrypted_message_with_uuid)
