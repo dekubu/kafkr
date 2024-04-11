@@ -54,7 +54,7 @@ module Kafkr
     end
 
     def current_environment
-      @current_environment ||= ENV["KAFKR_ENV"] || "development"
+      @current_environment ||= ENV["KAFKR_ENV"] || "production"
     end
 
     def development?
@@ -75,7 +75,7 @@ module Kafkr
 
     def write(message, unique_id = nil)
       begin
-        logger.info(message)
+        logger.info(formatted_message)
       rescue IOError => e
         @logger.error("Failed to write log: #{e.message}")
       end
