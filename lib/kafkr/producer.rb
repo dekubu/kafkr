@@ -75,7 +75,7 @@ module Kafkr
       begin
         socket = TCPSocket.new(@configuration.host, @configuration.port)
         send_queued_messages(socket)
-        socket.Kafkr.log(encrypted_message_with_uuid)
+        socket.puts.log(encrypted_message_with_uuid)
       rescue Errno::ECONNREFUSED
         Kafkr.log "Connection refused. Queuing message: #{encrypted_message_with_uuid}"
         @configuration.message_queue.push(encrypted_message_with_uuid)
@@ -106,14 +106,14 @@ module Kafkr
     def self.send_queued_messages(socket)
       until @configuration.message_queue.empty?
         queued_message = @configuration.message_queue.shift
-        socket.Kafkr.log(queued_message)
+        socket.puts(queued_message)
       end
     end
 
     def self.save_queue_to_file
       @@file_mutex.synchronize do
         File.open(@configuration.queue_file, "w") do |file|
-          file.Kafkr.log(@configuration.message_queue)
+          file.puts(@configuration.message_queue)
         end
       end
     end
