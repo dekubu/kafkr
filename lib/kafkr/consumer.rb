@@ -77,23 +77,6 @@ module Kafkr
         Kafkr::Producer.send_message({reply: {payload: payload, uuid: to["sync_uid"]}})
       end
 
-      private
-
-      def can_handle?(message, name, ignore: :any)
-        if message.is_a?(Numeric)
-          return true if message == name.to_i
-        elsif ignore == :hash
-          return true if message[:message] && message[:message][:body] && message[:message][:body] == name
-          return true if message[:message] && message[:message][:body] && message[:message][:body].start_with?(name)
-        elsif ignore == :string
-          return true if message.key? name
-        else
-          return true if message.key? name
-          return true if message[:message] && message[:message][:body] && message[:message][:body] == name
-          return true if message[:message] && message[:message][:body] && message[:message][:body].start_with?(name)
-        end
-        false
-      end
     end
 
     def initialize(host = Consumer.configuration.host, port = Consumer.configuration.port)
@@ -112,40 +95,6 @@ module Kafkr
     def valid_class_name?(name)
       /^[A-Z]\w*$/.match?(name)
     end
-
-    def print_handler_class(name)
-      return if name.is_a?(Numeric)
-      name = name.keys.first if name.is_a?(Hash)
-      handler_name = "#{name.downcase}_handler"
-
-      if $loaded_handlers.key?(handler_name)
-        return
-      end
-
-      if Kafkr::Consumer.configuration.suggest_handlers
-        if valid_class_name?(name.capitalize)
-          Kafkr.log "No handler for this message, you could use this one.\n\n"
-
-          handler_class_string = <<~HANDLER_CLASS
-            class #{name.capitalize}Handler < Kafkr::Consumer::Handler
-              def handle?(message)
-                can_handle? message, '#{name}'
-              end
-
-              def handle(message)
-                Kafkr.log message
-              end
-            end
-
-            # Save the file to ./handlers/#{name}_handler.rb
-          HANDLER_CLASS
-
-          Kafkr.log handler_class_string
-        end
-      end
-    end
-
-    require "timeout"
 
     def listen_for(message, send_message)
       attempt = 0
@@ -202,15 +151,14 @@ module Kafkr
     private
 
     def dispatch_to_handlers(message)
-      message_hash = message.is_a?(String) ? {message: {body: message}} : message
+      
+      message_hash = JSON.parse(message)
 
       self.class.handlers.each do |handler|
         if handler.handle?(message_hash)
           handler.handle(message_hash)
         end
       end
-
-      print_handler_class(message)
 
       yield message_hash if block_given?
     end
