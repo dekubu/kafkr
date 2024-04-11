@@ -75,7 +75,7 @@ module Kafkr
 
     def write(message, unique_id = nil)
       begin
-        logger.info(formatted_message)
+        logger.info(message)
       rescue IOError => e
         @logger.error("Failed to write log: #{e.message}")
       end
