@@ -15,62 +15,19 @@ require_relative "kafkr/version"
 
 module Kafkr
   class << self
-    attr_accessor :current_environment
     def logger
       @logger ||= configure_logger
     end
 
-    def configure_logger(output = default_output)
+    def configure_logger(output = STDOUT)
       begin
         @logger = ::Logger.new(output)
       rescue Errno::EACCES, Errno::ENOENT => e
         @logger = ::Logger.new(STDOUT)
         @logger.error("Could not open log file: #{e.message}")
       end
-      set_logger_level
+      @logger.level = ::Logger::DEBUG
       @logger
-    end
-
-    def default_output
-      case current_environment
-      when "production"
-        "/var/log/kafkr.log"
-      else
-        STDOUT
-      end
-    end
-
-    def set_logger_level
-      @logger.level = case current_environment
-      when "development"
-        ::Logger::DEBUG
-      when "staging"
-        ::Logger::INFO
-      when "production"
-        ::Logger::WARN
-      else
-        ::Logger::DEBUG
-      end
-    end
-
-    def current_environment
-      @current_environment ||= ENV["KAFKR_ENV"] || "production"
-    end
-
-    def development?
-      current_environment == "development"
-    end
-
-    def test?
-      current_environment == "test"
-    end
-
-    def staging?
-      current_environment == "staging"
-    end
-
-    def production?
-      current_environment == "production"
     end
 
     def write(message, unique_id = nil)
@@ -100,3 +57,4 @@ module Kafkr
     logger.error("Configuration error: #{e.message}")
   end
 end
+
