@@ -17,7 +17,7 @@ module Kafkr
       @configuration.queue_file = MESSAGE_QUEUE
       @configuration.message_queue = []
       load_queue_from_file
-      @configuration.is_json = false
+      @configuration.is_json = true
       @configuration
     end
 
@@ -25,28 +25,6 @@ module Kafkr
       yield(configuration)
     rescue => e
       logger.error("Configuration error: #{e.message}")
-    end
-
-    def self.structured_data_to_hash(input:, sync_uid:)
-      unless /\A\w+\s*(=>|<=>)\s*((\w+:\s*['"]?[^'",]*['"]?,\s*)*(\w+:\s*['"]?[^'",]*['"]?)\s*)\z/.match?(input)
-        return input
-      end
-
-      if input.include?("<=>")
-        type, key_values_str = input.split("<=>").map(&:strip)
-        key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
-        hash_body = key_values.to_h do |key, value|
-          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, "")]
-        end
-        {type.to_sym => hash_body, :sync => true, :sync_uid => sync_uid}
-      else
-        type, key_values_str = input.split("=>").map(&:strip)
-        key_values = key_values_str.scan(/(\w+):\s*['"]?([^'",]*)['"]?/)
-        hash_body = key_values.to_h do |key, value|
-          [key.to_sym, value.strip.gsub(/\A['"]|['"]\z/, "")]
-        end
-        {type.to_sym => hash_body}
-      end
     end
 
     def self.send_message(message)
@@ -59,15 +37,6 @@ module Kafkr
         json_message = JSON.parse(message)
         json_message["uuid"] = uuid
         message_with_uuid = JSON.dump(json_message)
-      else
-        if message.is_a? String
-          message = structured_data_to_hash(input: message, sync_uid: uuid)
-          message_with_uuid = "#{uuid}: #{message}"
-        end
-
-        if message.is_a?(Hash)
-          message_with_uuid = "#{uuid}: #{JSON.generate(message)}"
-        end
       end
 
       encrypted_message_with_uuid = Kafkr::Encryptor.new.encrypt(message_with_uuid)
