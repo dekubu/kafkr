@@ -51,7 +51,7 @@ def start_consumer(port, host, timeout)
 
   $current_consumer = Kafkr::Consumer.new
   $current_consumer.listen do |message|
-    # Processing of the message
+    Kafkr.log "Message consumed: #{message}"# Processing of the message
   end
 end
 
