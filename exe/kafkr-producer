@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require "kafkr"
 require "readline"
 
 # Parsing command line arguments for host and port
